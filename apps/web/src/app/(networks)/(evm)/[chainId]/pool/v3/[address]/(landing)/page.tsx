@@ -28,6 +28,7 @@ export default async function PoolPage(props: {
       revalidate: 60 * 15,
     },
   )()) as V3Pool
+  console.log('v3 pool page', pool)
 
   return <PoolPageV3 pool={pool} />
 }

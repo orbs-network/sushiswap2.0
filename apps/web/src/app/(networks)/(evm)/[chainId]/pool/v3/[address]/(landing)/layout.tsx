@@ -37,6 +37,7 @@ export default async function Layout(props: {
       revalidate: 60 * 15,
     },
   )()) as V3Pool
+  console.log('v3 pool layout', pool)
 
   const headersList = await headers()
   const referer = headersList.get('referer')

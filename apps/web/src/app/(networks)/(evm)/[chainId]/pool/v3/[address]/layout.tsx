@@ -35,6 +35,8 @@ export default async function Layout(props: {
     },
   )()
 
+  console.log('v3 layout', pool)
+
   if (!pool) {
     return notFound()
   }
