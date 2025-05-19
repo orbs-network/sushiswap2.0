@@ -1,8 +1,4 @@
-import {
-  type IKadenaWalletProviderProps,
-  KadenaWalletProvider as KadenaWalletProviderReact,
-  useKadenaWallet,
-} from '@kadena/wallet-adapter-react'
+import { useKadenaWallet } from '@kadena/wallet-adapter-react'
 import React, {
   createContext,
   useCallback,
@@ -60,6 +56,7 @@ export const KadenaWalletProvider = ({
       if (walletAdapterName !== 'WalletConnect') {
         setIsConnecting(true)
       }
+
       try {
         const accountInfo = await client.connect(walletAdapterName)
         setActiveAccount(accountInfo)

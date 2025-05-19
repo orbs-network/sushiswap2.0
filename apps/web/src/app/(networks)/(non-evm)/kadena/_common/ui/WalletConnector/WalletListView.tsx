@@ -1,19 +1,22 @@
+import { createInfoToast } from '@sushiswap/notifications'
 import { List, SelectIcon } from '@sushiswap/ui'
 import Image from 'next/image'
+import { useMobileDetect } from '~kadena/_common/lib/hooks/use-mobile-detect'
 import { useKadena } from '~kadena/kadena-wallet-provider'
 
 export const WalletListView = ({
   isFullWidth = false,
-}: {
-  isFullWidth?: boolean
-}) => {
+}: { isFullWidth?: boolean }) => {
   const { adapters, handleConnect } = useKadena()
-
-  console.log('adapters', adapters)
+  const { isMobile } = useMobileDetect()
 
   return (
     <List
-      className={`flex flex-col gap-1 !p-0 ${isFullWidth ? '[width:calc(var(--radix-popover-trigger-width)_-_10px)]' : ''}`}
+      className={`flex flex-col gap-1 !p-0 ${
+        isFullWidth
+          ? '[width:calc(var(--radix-popover-trigger-width)_-_10px)]'
+          : ''
+      }`}
     >
       <List.Control className="bg-gray-100">
         {adapters.map((adapter) => (
@@ -31,6 +34,18 @@ export const WalletListView = ({
             key={adapter.name}
             title={adapter.name === 'Ecko' ? 'eckoWALLET' : adapter.name}
             onClick={() => {
+              if (isMobile && adapter?.name === 'Ecko') {
+                createInfoToast({
+                  summary:
+                    'eckoWALLET is currently only supported on desktop. Please switch devices or select another wallet to proceed.',
+                  type: 'send',
+                  account: undefined,
+                  chainId: 1,
+                  groupTimestamp: Date.now(),
+                  timestamp: Date.now(),
+                })
+                return
+              }
               adapter.detected
                 ? handleConnect(adapter.name)
                 : window.open(adapter.installUrl, '_blank')
