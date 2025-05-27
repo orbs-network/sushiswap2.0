@@ -9,7 +9,7 @@ import {
 import type { Type } from 'sushi/currency'
 import { tickToPrice } from 'sushi/pool/sushiswap-v3'
 
-import { useConcentratedLiquidityPool } from 'src/lib/wagmi/hooks/pools/hooks/useConcentratedLiquidityPool'
+import { useConcentratedLiquidityPoolV3 } from 'src/lib/wagmi/hooks/pools/hooks/useConcentratedLiquidityPoolV3'
 import computeSurroundingTicks from '../../functions'
 import { useTicks } from './use-ticks'
 
@@ -59,15 +59,14 @@ export const useConcentratedActiveLiquidity = ({
   feeAmount: SushiSwapV3FeeAmount | undefined
   enabled?: boolean
 }) => {
-  const { data: pool, isLoading: isPoolLoading } = useConcentratedLiquidityPool(
-    {
+  const { data: pool, isLoading: isPoolLoading } =
+    useConcentratedLiquidityPoolV3({
       chainId,
       token0,
       token1,
       feeAmount,
       enabled,
-    },
-  )
+    })
 
   // Find nearest valid tick for pool in case tick is not initialized.
   const activeTick = useMemo(

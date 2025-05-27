@@ -12,19 +12,22 @@ import {
   useMemo,
   useState,
 } from 'react'
+import type { Permit2Signature } from 'src/lib/permit2/types'
 import type { SignTypedDataParameters, Signature as _Signature } from 'viem'
 import { useConfig } from 'wagmi'
 
 type Signature = _Signature & Partial<SignTypedDataParameters>
 
+type SignatureType = Signature | Permit2Signature
+
 type CheckerContext = {
   setApproved: (tag: string, approved: boolean) => void
-  setSignature: (tag: string, signature: Signature | undefined) => void
+  setSignature: (tag: string, signature: SignatureType | undefined) => void
 }
 
 type CheckerStateContext = {
   state: Record<string, boolean>
-  signatureState: Record<string, Signature | undefined>
+  signatureState: Record<string, SignatureType | undefined>
 }
 
 const CheckerContext = createContext<CheckerContext | undefined>(undefined)
@@ -38,7 +41,7 @@ interface ProviderProps {
 
 interface State {
   state: Record<string, boolean>
-  signatureState: Record<string, Signature | undefined>
+  signatureState: Record<string, SignatureType | undefined>
 }
 
 const initialState = { state: {}, signatureState: {} }
@@ -57,7 +60,7 @@ const CheckerProvider: FC<ProviderProps> = ({ children }) => {
   }, [])
 
   const setSignature = useCallback(
-    (tag: string, signature: Signature | undefined) => {
+    (tag: string, signature: SignatureType | undefined) => {
       setState((prevState) => ({
         ...prevState,
         signatureState: {
@@ -118,7 +121,7 @@ const useApprovedActions = (tag: string) => {
       setApproved: (approved: boolean) => {
         setApproved(tag, approved)
       },
-      setSignature: (signature: Signature | undefined) => {
+      setSignature: (signature: SignatureType | undefined) => {
         setSignature(tag, signature)
       },
     }),
@@ -141,7 +144,9 @@ const useApproved = (tag: string) => {
   )
 }
 
-const useSignature = (tag: string) => {
+const useSignature = <T extends SignatureType = Signature>(
+  tag: string,
+): { signature: T | undefined } => {
   const stateContext = useCheckerStateContext()
 
   if (!stateContext) {
@@ -150,9 +155,7 @@ const useSignature = (tag: string) => {
 
   return useMemo(
     () => ({
-      signature: stateContext.signatureState[tag]
-        ? stateContext.signatureState[tag]
-        : undefined,
+      signature: stateContext.signatureState[tag] as T,
     }),
     [stateContext, tag],
   )

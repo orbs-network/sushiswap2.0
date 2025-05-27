@@ -5,7 +5,7 @@ import { Position } from 'sushi/pool/sushiswap-v3'
 import { stringify } from 'viem'
 
 import { useConfig } from 'wagmi'
-import { getConcentratedLiquidityPool } from '../../pools/actions/getConcentratedLiquidityPool'
+import { getConcentratedLiquidityPoolV3 } from '../../pools/actions/getConcentratedLiquidityPoolV3'
 import { useConcentratedLiquidityPositionsFromTokenId } from './useConcentratedPositionsFromTokenId'
 
 interface UseConcentratedLiquidityPositionsFromTokenIdParams {
@@ -39,7 +39,7 @@ export const useConcentratedPositionInfo = ({
     queryFn: async () => {
       if (!token0 || !token1 || !positionDetails) throw new Error()
 
-      const pool = await getConcentratedLiquidityPool({
+      const pool = await getConcentratedLiquidityPoolV3({
         chainId,
         token0,
         token1,

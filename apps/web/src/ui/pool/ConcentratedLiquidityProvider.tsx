@@ -11,7 +11,7 @@ import {
 } from 'react'
 import { Bound, Field } from 'src/lib/constants'
 import { getTickToPrice, tryParseTick } from 'src/lib/functions'
-import { useConcentratedLiquidityPool } from 'src/lib/wagmi/hooks/pools/hooks/useConcentratedLiquidityPool'
+import { useConcentratedLiquidityPoolV3 } from 'src/lib/wagmi/hooks/pools/hooks/useConcentratedLiquidityPoolV3'
 import {
   type SushiSwapV3ChainId,
   type SushiSwapV3FeeAmount,
@@ -307,7 +307,7 @@ export function useConcentratedDerivedMintInfo({
   )
 
   // pool
-  const usePool = useConcentratedLiquidityPool({
+  const usePool = useConcentratedLiquidityPoolV3({
     chainId,
     token0: currencies[Field.CURRENCY_A],
     token1: currencies[Field.CURRENCY_B],

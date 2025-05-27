@@ -2,53 +2,67 @@
 
 import { Transition } from '@headlessui/react'
 import { LockClosedIcon, PlusIcon } from '@heroicons/react-v1/solid'
+import { SlippageToleranceStorageKey, TTLStorageKey } from '@sushiswap/hooks'
 import { DialogTrigger, FormSection, Message, classNames } from '@sushiswap/ui'
 import { Button } from '@sushiswap/ui'
 import { type FC, Fragment, useCallback, useMemo } from 'react'
-import {
-  SUSHISWAP_V3_POSITION_MANAGER,
-  type SushiSwapV3ChainId,
-  type SushiSwapV3FeeAmount,
-  isWNativeSupported,
-} from 'sushi/config'
-import type { Type } from 'sushi/currency'
-import type { Position } from 'sushi/pool/sushiswap-v3'
-
-import { SlippageToleranceStorageKey } from '@sushiswap/hooks'
 import { useSlippageTolerance } from 'src/lib/hooks/useSlippageTolerance'
+import {
+  type PoolKey,
+  SUSHISWAP_V4_CL_POSITION_MANAGER,
+  type SushiSwapV4ChainId,
+  type SushiSwapV4Position,
+} from 'src/lib/pool/v4'
 import { Web3Input } from 'src/lib/wagmi/components/web3-input'
 import { useConcentratedPositionOwner } from 'src/lib/wagmi/hooks/positions/hooks/useConcentratedPositionOwner'
 import { Checker } from 'src/lib/wagmi/systems/Checker'
+import { CheckerProvider } from 'src/lib/wagmi/systems/Checker/Provider'
+import { isWNativeSupported } from 'sushi/config'
+import type { Type } from 'sushi/currency'
 import { Bound, Field } from '../../lib/constants'
-import { AddSectionReviewModalConcentrated } from './AddSectionReviewModalConcentrated'
+import { AddSectionReviewModalConcentratedV4 } from './AddSectionReviewModalConcentratedV4'
 import {
-  useConcentratedDerivedMintInfo,
+  useConcentratedDerivedMintInfoV4,
   useConcentratedMintActionHandlers,
   useConcentratedMintState,
-} from './ConcentratedLiquidityProvider'
+} from './ConcentratedLiquidityProviderV4'
 
-interface ConcentratedLiquidityWidget {
-  chainId: SushiSwapV3ChainId
+interface ConcentratedLiquidityWidgetV4 {
+  chainId: SushiSwapV4ChainId
   account: string | undefined
   token0: Type | undefined
   token1: Type | undefined
-  feeAmount: SushiSwapV3FeeAmount | undefined
+  poolKey: PoolKey | undefined
+  feeAmount: number | undefined
+  tickSpacing: number | undefined
   setToken0?(token: Type): void
   setToken1?(token: Type): void
   tokensLoading: boolean
   tokenId: number | string | undefined
-  existingPosition: Position | undefined
+  existingPosition: SushiSwapV4Position | undefined
   onChange?(val: string, input: 'a' | 'b'): void
   successLink?: string
   withTitleAndDescription?: boolean
 }
 
-export const ConcentratedLiquidityWidget: FC<ConcentratedLiquidityWidget> = ({
+export const ConcentratedLiquidityWidgetV4: FC<
+  ConcentratedLiquidityWidgetV4
+> = (props) => {
+  return (
+    <CheckerProvider>
+      <_ConcentratedLiquidityWidgetV4 {...props} />
+    </CheckerProvider>
+  )
+}
+
+const _ConcentratedLiquidityWidgetV4: FC<ConcentratedLiquidityWidgetV4> = ({
   chainId,
   account,
   feeAmount,
+  tickSpacing,
   token0,
   token1,
+  poolKey,
   setToken0,
   setToken1,
   tokensLoading,
@@ -83,13 +97,14 @@ export const ConcentratedLiquidityWidget: FC<ConcentratedLiquidityWidget> = ({
     invalidPool,
     position,
     isInitialLoading: isPoolLoading,
-  } = useConcentratedDerivedMintInfo({
+  } = useConcentratedDerivedMintInfoV4({
     chainId,
     account,
     token0,
     token1,
     baseToken: token0,
     feeAmount,
+    tickSpacing,
     existingPosition,
   })
 
@@ -257,7 +272,6 @@ export const ConcentratedLiquidityWidget: FC<ConcentratedLiquidityWidget> = ({
             allowNative={isWNativeSupported(chainId)}
           />
         </div>
-
         <Checker.Connect fullWidth>
           <Checker.Network fullWidth chainId={chainId}>
             <Checker.Amounts fullWidth chainId={chainId} amounts={amounts}>
@@ -266,25 +280,33 @@ export const ConcentratedLiquidityWidget: FC<ConcentratedLiquidityWidget> = ({
                 slippageTolerance={slippagePercent}
                 text="Continue With High Slippage"
               >
-                <Checker.ApproveERC20
+                <Checker.ApproveERC20Permit2
                   fullWidth
                   id="approve-erc20-0"
+                  chainId={chainId}
                   amount={parsedAmounts[Field.CURRENCY_A]}
-                  contract={SUSHISWAP_V3_POSITION_MANAGER[chainId]}
+                  contract={SUSHISWAP_V4_CL_POSITION_MANAGER[chainId]}
                   enabled={!depositADisabled}
+                  tag="v4-token-0"
+                  ttlStorageKey={TTLStorageKey.RemoveLiquidity}
                 >
-                  <Checker.ApproveERC20
+                  <Checker.ApproveERC20Permit2
                     fullWidth
                     id="approve-erc20-1"
+                    chainId={chainId}
                     amount={parsedAmounts[Field.CURRENCY_B]}
-                    contract={SUSHISWAP_V3_POSITION_MANAGER[chainId]}
+                    contract={SUSHISWAP_V4_CL_POSITION_MANAGER[chainId]}
                     enabled={!depositBDisabled}
+                    tag="v4-token-1"
+                    ttlStorageKey={TTLStorageKey.RemoveLiquidity}
                   >
-                    <AddSectionReviewModalConcentrated
+                    <AddSectionReviewModalConcentratedV4
                       chainId={chainId}
                       feeAmount={feeAmount}
+                      tickSpacing={tickSpacing}
                       token0={token0}
                       token1={token1}
+                      poolKey={poolKey}
                       input0={parsedAmounts[Field.CURRENCY_A]}
                       input1={parsedAmounts[Field.CURRENCY_B]}
                       position={position}
@@ -292,6 +314,7 @@ export const ConcentratedLiquidityWidget: FC<ConcentratedLiquidityWidget> = ({
                       price={price}
                       pricesAtTicks={pricesAtTicks}
                       ticksAtLimit={ticksAtLimit}
+                      ticks={ticks}
                       tokenId={tokenId}
                       existingPosition={existingPosition}
                       onSuccess={() => {
@@ -309,9 +332,9 @@ export const ConcentratedLiquidityWidget: FC<ConcentratedLiquidityWidget> = ({
                           Preview
                         </Button>
                       </DialogTrigger>
-                    </AddSectionReviewModalConcentrated>
-                  </Checker.ApproveERC20>
-                </Checker.ApproveERC20>
+                    </AddSectionReviewModalConcentratedV4>
+                  </Checker.ApproveERC20Permit2>
+                </Checker.ApproveERC20Permit2>
               </Checker.Slippage>
             </Checker.Amounts>
           </Checker.Network>

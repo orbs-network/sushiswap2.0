@@ -100,10 +100,15 @@ export default function LiquidityChartRangeInput({
 
   const { isLoading, error, data } = useDensityChartData({
     chainId,
-    token0: currencyA,
-    token1: currencyB,
+    // token0: currencyA,
+    token0: undefined,
+    // token1: currencyB,
+    token1: undefined,
     feeAmount,
+    enabled: false,
   })
+
+  console.log('data', data)
 
   const onBrushDomainChangeEnded = useCallback(
     (domain: [number, number], mode: string | undefined) => {

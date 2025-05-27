@@ -33,7 +33,7 @@ import { useRouter } from 'next/navigation'
 import { use, useMemo, useState } from 'react'
 import { useRewardTokens } from 'src/lib/hooks/react-query'
 import { Web3Input } from 'src/lib/wagmi/components/web3-input'
-import { useConcentratedLiquidityPool } from 'src/lib/wagmi/hooks/pools/hooks/useConcentratedLiquidityPool'
+import { useConcentratedLiquidityPoolV3 } from 'src/lib/wagmi/hooks/pools/hooks/useConcentratedLiquidityPoolV3'
 import {
   AngleConditionsState,
   useAcceptAngleConditions,
@@ -48,8 +48,8 @@ import { ConcentratedLiquidityProvider } from 'src/ui/pool/ConcentratedLiquidity
 import {
   ConcentratedLiquidityURLStateProvider,
   useConcentratedLiquidityURLState,
-} from 'src/ui/pool/ConcentratedLiquidityURLStateProvider'
-import { SelectFeeConcentratedWidget } from 'src/ui/pool/SelectFeeConcentratedWidget'
+} from 'src/ui/pool/ConcentratedLiquidityURLStateProviderV3'
+import { SelectFeeConcentratedWidgetV3 } from 'src/ui/pool/SelectFeeConcentratedWidgetV3'
 import { SelectNetworkWidget } from 'src/ui/pool/SelectNetworkWidget'
 import { SelectTokensWidget } from 'src/ui/pool/SelectTokensWidget'
 import { ChainKey, EvmChain, EvmChainId } from 'sushi/chain'
@@ -112,7 +112,7 @@ const Incentivize = withCheckerRoot(() => {
     () => [tryParseAmount(value, rewardToken)],
     [value, rewardToken],
   )
-  const { data: pool } = useConcentratedLiquidityPool({
+  const { data: pool } = useConcentratedLiquidityPoolV3({
     chainId,
     token0,
     token1,
@@ -222,7 +222,7 @@ const Incentivize = withCheckerRoot(() => {
           setToken1={setToken1}
           includeNative={isWNativeSupported(chainId)}
         />
-        <SelectFeeConcentratedWidget
+        <SelectFeeConcentratedWidgetV3
           title="What is the fee tier for this pool?"
           feeAmount={feeAmount}
           setFeeAmount={setFeeAmount}

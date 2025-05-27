@@ -46,7 +46,7 @@ export const FEE_OPTIONS = [
   },
 ]
 
-interface SelectFeeConcentratedWidget {
+interface SelectFeeConcentratedWidgetV3 {
   feeAmount: SushiSwapV3FeeAmount | undefined
   setFeeAmount: (fee: SushiSwapV3FeeAmount) => void
   token0: Type | undefined
@@ -55,7 +55,7 @@ interface SelectFeeConcentratedWidget {
   disableIfNotExists?: boolean
 }
 
-export const SelectFeeConcentratedWidget: FC<SelectFeeConcentratedWidget> =
+export const SelectFeeConcentratedWidgetV3: FC<SelectFeeConcentratedWidgetV3> =
   memo(function SelectFeeWidget({
     feeAmount,
     setFeeAmount: _setFeeAmount,

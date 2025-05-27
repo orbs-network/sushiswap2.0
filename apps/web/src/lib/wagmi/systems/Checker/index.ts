@@ -8,6 +8,10 @@ import {
   type ApproveERC20MultipleProps,
 } from './ApproveERC20Multiple'
 import {
+  ApproveERC20Permit2,
+  type ApproveERC20Permit2Props,
+} from './ApproveERC20Permit2'
+import {
   ApproveERC20WithPermit,
   type ApproveERC20WithPermitProps,
 } from './ApproveERC20WithPermit'
@@ -36,6 +40,7 @@ export type CheckerProps = {
   ApproveERC20: ComponentType<ApproveERC20Props>
   ApproveERC20Multiple: ComponentType<ApproveERC20MultipleProps>
   ApproveERC20WithPermit: ComponentType<ApproveERC20WithPermitProps>
+  ApproveERC20Permit2: ComponentType<ApproveERC20Permit2Props>
   RevokeApproveERC20: ComponentType<RevokeApproveERC20Props>
   Connect: ComponentType<ButtonProps>
   Success: FC<SuccessProps>
@@ -53,6 +58,7 @@ export const Checker: CheckerProps = {
   ApproveERC20,
   ApproveERC20Multiple,
   ApproveERC20WithPermit,
+  ApproveERC20Permit2,
   RevokeApproveERC20,
   Success,
   Root,

@@ -72,8 +72,8 @@ import type { Address } from 'viem'
 import { useAccount, useWaitForTransactionReceipt } from 'wagmi'
 import { useConcentratedDerivedMintInfo } from './ConcentratedLiquidityProvider'
 import { usePoolPosition } from './PoolPositionProvider'
-import { SelectFeeConcentratedWidget } from './SelectFeeConcentratedWidget'
-import { SelectPricesWidget } from './SelectPricesWidget'
+import { SelectFeeConcentratedWidgetV3 } from './SelectFeeConcentratedWidgetV3'
+import { SelectPricesWidgetV3 } from './SelectPricesWidgetV3'
 
 export const MigrateTab: FC<{ pool: V2Pool }> = withCheckerRoot(({ pool }) => {
   const { address } = useAccount()
@@ -458,7 +458,7 @@ export const MigrateTab: FC<{ pool: V2Pool }> = withCheckerRoot(({ pool }) => {
           <Separator />
         </div>
         <CardContent className="!pb-0">
-          <SelectFeeConcentratedWidget
+          <SelectFeeConcentratedWidgetV3
             setFeeAmount={setFeeAmount}
             feeAmount={feeAmount}
             token0={token0}
@@ -466,7 +466,7 @@ export const MigrateTab: FC<{ pool: V2Pool }> = withCheckerRoot(({ pool }) => {
           />
           <Separator />
           <div className="flex flex-col gap-6">
-            <SelectPricesWidget
+            <SelectPricesWidgetV3
               chainId={pool.chainId as SushiSwapV3ChainId}
               token0={token0}
               token1={token1}
@@ -496,7 +496,7 @@ export const MigrateTab: FC<{ pool: V2Pool }> = withCheckerRoot(({ pool }) => {
                   move the price or wait for someone else to do so.
                 </Message>
               ) : null}
-            </SelectPricesWidget>
+            </SelectPricesWidgetV3>
           </div>
         </CardContent>
         <CardContent className="pt-0">

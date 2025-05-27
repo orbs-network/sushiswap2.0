@@ -20,7 +20,7 @@ type Liquidity = ContractFunctionReturnType<
   'liquidity'
 >
 
-export const getConcentratedLiquidityPools = async ({
+export const getConcentratedLiquidityPoolsV3 = async ({
   poolKeys,
   config,
 }: {
@@ -116,7 +116,7 @@ export const getConcentratedLiquidityPools = async ({
   })
 }
 
-export const getConcentratedLiquidityPool = async ({
+export const getConcentratedLiquidityPoolV3 = async ({
   chainId,
   token0,
   token1,
@@ -130,7 +130,7 @@ export const getConcentratedLiquidityPool = async ({
   config: PublicWagmiConfig
 }): Promise<SushiSwapV3Pool | null> => {
   return (
-    await getConcentratedLiquidityPools({
+    await getConcentratedLiquidityPoolsV3({
       poolKeys: [
         {
           chainId,

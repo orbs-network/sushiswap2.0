@@ -29,25 +29,32 @@ import { Bound } from 'src/lib/constants'
 import { NativeAddress } from 'src/lib/constants'
 import { useTokenAmountDollarValues } from 'src/lib/hooks'
 import { useSlippageTolerance } from 'src/lib/hooks/useSlippageTolerance'
+import type { Permit2Signature } from 'src/lib/permit2/types'
+import {
+  type CLPositionConfig,
+  type PoolKey,
+  SUSHISWAP_V4_CL_POSITION_MANAGER,
+  type SushiSwapV4ChainId,
+  type SushiSwapV4Position,
+  addCLLiquidityMulticall,
+} from 'src/lib/pool/v4'
 import {
   getDefaultTTL,
   useTransactionDeadline,
 } from 'src/lib/wagmi/hooks/utils/hooks/useTransactionDeadline'
-import { EvmChain, type EvmChainId } from 'sushi/chain'
-import {
-  SUSHISWAP_V3_POSITION_MANAGER,
-  type SushiSwapV3FeeAmount,
-  isSushiSwapV3ChainId,
-} from 'sushi/config'
+import { useSignature } from 'src/lib/wagmi/systems/Checker/Provider'
+import { EvmChain } from 'sushi/chain'
 import { type Amount, type Type, tryParseAmount } from 'sushi/currency'
 import {
   NonfungiblePositionManager,
   type Position,
+  TickMath,
+  maxLiquidityForAmounts,
 } from 'sushi/pool/sushiswap-v3'
 import {
-  type Hex,
   type SendTransactionReturnType,
   UserRejectedRequestError,
+  maxUint128,
 } from 'viem'
 import {
   type UseCallParameters,
@@ -58,28 +65,35 @@ import {
   useWaitForTransactionReceipt,
 } from 'wagmi'
 import { useRefetchBalances } from '~evm/_common/ui/balance-provider/use-refetch-balances'
-import type { useConcentratedDerivedMintInfo } from './ConcentratedLiquidityProvider'
+import type { useConcentratedDerivedMintInfoV4 } from './ConcentratedLiquidityProviderV4'
 
-interface AddSectionReviewModalConcentratedProps
+interface AddSectionReviewModalConcentratedV4Props
   extends Pick<
-    ReturnType<typeof useConcentratedDerivedMintInfo>,
-    'noLiquidity' | 'position' | 'price' | 'pricesAtTicks' | 'ticksAtLimit'
+    ReturnType<typeof useConcentratedDerivedMintInfoV4>,
+    | 'noLiquidity'
+    | 'position'
+    | 'price'
+    | 'pricesAtTicks'
+    | 'ticksAtLimit'
+    | 'ticks'
   > {
-  chainId: EvmChainId
-  feeAmount: SushiSwapV3FeeAmount | undefined
+  chainId: SushiSwapV4ChainId
+  feeAmount: number | undefined
+  tickSpacing: number | undefined
   token0: Type | undefined
   token1: Type | undefined
+  poolKey: PoolKey | undefined
   input0: Amount<Type> | undefined
   input1: Amount<Type> | undefined
-  existingPosition: Position | undefined
+  existingPosition: SushiSwapV4Position | undefined
   tokenId: number | string | undefined
   children: ReactNode
   onSuccess: () => void
   successLink?: string
 }
 
-export const AddSectionReviewModalConcentrated: FC<
-  AddSectionReviewModalConcentratedProps
+export const AddSectionReviewModalConcentratedV4: FC<
+  AddSectionReviewModalConcentratedV4Props
 > = ({
   chainId,
   feeAmount,
@@ -87,6 +101,7 @@ export const AddSectionReviewModalConcentrated: FC<
   token1,
   input0,
   input1,
+  poolKey,
   children,
   noLiquidity,
   position,
@@ -94,6 +109,7 @@ export const AddSectionReviewModalConcentrated: FC<
   price,
   pricesAtTicks,
   ticksAtLimit,
+  ticks,
   tokenId,
   onSuccess: _onSuccess,
   successLink,
@@ -110,6 +126,11 @@ export const AddSectionReviewModalConcentrated: FC<
   const client = usePublicClient()
 
   const trace = useTrace()
+
+  const { signature: token0Permit2Signature } =
+    useSignature<Permit2Signature>('v4-token-0')
+  const { signature: token1Permit2Signature } =
+    useSignature<Permit2Signature>('v4-token-1')
 
   const isSorted =
     token0 && token1 && token0.wrapped.sortsBefore(token1.wrapped)
@@ -226,39 +247,52 @@ export const AddSectionReviewModalConcentrated: FC<
       !address ||
       !token0 ||
       !token1 ||
-      !isSushiSwapV3ChainId(chainId) ||
+      !poolKey ||
       !position ||
-      !deadline
+      !deadline ||
+      !ticks.LOWER ||
+      !ticks.UPPER
     )
       return undefined
 
-    const useNative = token0.isNative
-      ? token0
-      : token1.isNative
-        ? token1
-        : undefined
-    const { calldata, value } =
-      hasExistingPosition && tokenId
-        ? NonfungiblePositionManager.addCallParameters(position, {
-            tokenId,
-            slippageTolerance,
-            deadline: deadline.toString(),
-            useNative,
-          })
-        : NonfungiblePositionManager.addCallParameters(position, {
-            slippageTolerance,
-            recipient: address,
-            deadline: deadline.toString(),
-            useNative,
-            createPool: noLiquidity,
-          })
+    const liquidity = maxLiquidityForAmounts(
+      position.pool.sqrtRatioX96,
+      TickMath.getSqrtRatioAtTick(ticks.LOWER),
+      TickMath.getSqrtRatioAtTick(ticks.UPPER),
+      position.mintAmounts.amount0,
+      position.mintAmounts.amount1,
+      true,
+    )
+
+    const positionConfig: CLPositionConfig = {
+      poolKey,
+      tickLower: ticks.LOWER,
+      tickUpper: ticks.UPPER,
+    }
+    const data = addCLLiquidityMulticall({
+      isInitialized: hasExistingPosition || !noLiquidity, // todo
+      sqrtPriceX96: position.pool.sqrtRatioX96,
+      tokenId: tokenId ? BigInt(tokenId) : undefined,
+      positionConfig,
+      liquidity,
+      owner: address,
+      recipient: address,
+      amount0Max: maxUint128,
+      amount1Max: maxUint128,
+      deadline,
+      modifyPositionHookData: '0x', // modifyPositionHookData: params.modifyPositionHookData ?? '0x', // todo
+      token0Permit2Signature,
+      token1Permit2Signature,
+    })
+
+    const value = token0.isNative ? position.mintAmounts.amount0 : 0n
 
     return {
-      to: SUSHISWAP_V3_POSITION_MANAGER[chainId],
+      to: SUSHISWAP_V4_CL_POSITION_MANAGER[chainId],
       account: address,
       chainId,
-      data: calldata as Hex,
-      value: BigInt(value),
+      data,
+      value,
     } as const satisfies UseCallParameters
   }, [
     address,
@@ -267,10 +301,14 @@ export const AddSectionReviewModalConcentrated: FC<
     hasExistingPosition,
     noLiquidity,
     position,
-    slippageTolerance,
+    // slippageTolerance,
     token0,
     token1,
     tokenId,
+    poolKey,
+    ticks,
+    token0Permit2Signature,
+    token1Permit2Signature,
   ])
 
   const { isError: isSimulationError } = useCall({

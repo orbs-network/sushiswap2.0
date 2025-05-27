@@ -64,7 +64,7 @@ import {
   useConcentratedDerivedMintInfo,
 } from './ConcentratedLiquidityProvider'
 import { ConcentratedLiquidityRemoveWidget } from './ConcentratedLiquidityRemoveWidget'
-import { ConcentratedLiquidityWidget } from './ConcentratedLiquidityWidget'
+import { ConcentratedLiquidityWidgetV3 } from './ConcentratedLiquidityWidgetV3'
 import { DistributionDataTable } from './DistributionDataTable'
 
 const Component: FC<{ chainId: string; address: string; position: string }> = ({
@@ -284,7 +284,7 @@ const Component: FC<{ chainId: string; address: string; position: string }> = ({
                         </SettingsOverlay>
                       </WidgetAction>
                     </CardHeader>
-                    <ConcentratedLiquidityWidget
+                    <ConcentratedLiquidityWidgetV3
                       withTitleAndDescription={false}
                       chainId={chainId}
                       account={address}

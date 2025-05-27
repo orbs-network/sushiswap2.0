@@ -177,7 +177,9 @@ export const ConcentratedLiquidityURLStateProvider: FC<
       const _searchParams = new URLSearchParams(
         Array.from(searchParams.entries()),
       )
+      console.log('_', _searchParams.toString())
       _searchParams.set('feeAmount', feeAmount.toString())
+      console.log('_', _searchParams.toString())
       void push(`${pathname}?${_searchParams.toString()}`, { scroll: false })
     }
     const switchTokens = () => {

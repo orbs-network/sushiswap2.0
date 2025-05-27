@@ -98,7 +98,7 @@ const YIELD_RATE_OPTIONS = [
   },
 ]
 
-interface SelectPricesWidget {
+interface SelectPricesWidgetV3 {
   chainId: SushiSwapV3ChainId
   token0: Type | undefined
   token1: Type | undefined
@@ -110,7 +110,7 @@ interface SelectPricesWidget {
   showStartPrice?: boolean
 }
 
-export const SelectPricesWidget: FC<SelectPricesWidget> = ({
+export const SelectPricesWidgetV3: FC<SelectPricesWidgetV3> = ({
   chainId,
   token0,
   token1,

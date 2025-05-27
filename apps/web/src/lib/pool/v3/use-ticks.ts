@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import { useConcentratedLiquidityPool } from 'src/lib/wagmi/hooks/pools/hooks/useConcentratedLiquidityPool'
+import { useConcentratedLiquidityPoolV3 } from 'src/lib/wagmi/hooks/pools/hooks/useConcentratedLiquidityPoolV3'
 import {
   SUSHISWAP_V3_FACTORY_ADDRESS,
   SUSHISWAP_V3_TICK_LENS,
@@ -77,7 +77,7 @@ export function useTicks({
 }: useTicksProps) {
   const numSurroundingTicks = _numSurroundingTicks ?? 1250
 
-  const { data: pool } = useConcentratedLiquidityPool({
+  const { data: pool } = useConcentratedLiquidityPoolV3({
     token0,
     token1,
     chainId,

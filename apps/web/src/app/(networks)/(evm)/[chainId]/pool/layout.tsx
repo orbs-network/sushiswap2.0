@@ -1,7 +1,8 @@
 import { isPoolChainId } from '@sushiswap/graph-client/data-api'
 import { notFound } from 'next/navigation'
 import { POOL_SUPPORTED_NETWORKS } from 'src/config'
-import type { ChainId } from 'sushi/chain'
+import { isSushiSwapV4ChainId } from 'src/lib/pool/v4'
+import type { EvmChainId } from 'sushi/chain'
 import { Header } from '../header'
 
 export default async function PoolLayout(props: {
@@ -12,8 +13,8 @@ export default async function PoolLayout(props: {
 
   const { children } = props
 
-  const chainId = +params.chainId as ChainId
-  if (!isPoolChainId(chainId)) {
+  const chainId = +params.chainId as EvmChainId
+  if (!isPoolChainId(chainId) && !isSushiSwapV4ChainId(chainId)) {
     return notFound()
   }
 

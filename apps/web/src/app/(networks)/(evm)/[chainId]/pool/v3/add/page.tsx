@@ -7,11 +7,11 @@ import { ConcentratedLiquidityProvider } from 'src/ui/pool/ConcentratedLiquidity
 import {
   ConcentratedLiquidityURLStateProvider,
   useConcentratedLiquidityURLState,
-} from 'src/ui/pool/ConcentratedLiquidityURLStateProvider'
-import { ConcentratedLiquidityWidget } from 'src/ui/pool/ConcentratedLiquidityWidget'
-import { SelectFeeConcentratedWidget } from 'src/ui/pool/SelectFeeConcentratedWidget'
+} from 'src/ui/pool/ConcentratedLiquidityURLStateProviderV3'
+import { ConcentratedLiquidityWidgetV3 } from 'src/ui/pool/ConcentratedLiquidityWidgetV3'
+import { SelectFeeConcentratedWidgetV3 } from 'src/ui/pool/SelectFeeConcentratedWidgetV3'
 import { SelectNetworkWidget } from 'src/ui/pool/SelectNetworkWidget'
-import { SelectPricesWidget } from 'src/ui/pool/SelectPricesWidget'
+import { SelectPricesWidgetV3 } from 'src/ui/pool/SelectPricesWidgetV3'
 import { SelectTokensWidget } from 'src/ui/pool/SelectTokensWidget'
 import { ChainKey, computeSushiSwapV3PoolAddress } from 'sushi'
 import {
@@ -88,13 +88,13 @@ const _Add: FC = () => {
         setToken1={setToken1}
         includeNative={isWNativeSupported(chainId)}
       />
-      <SelectFeeConcentratedWidget
+      <SelectFeeConcentratedWidgetV3
         feeAmount={feeAmount}
         setFeeAmount={setFeeAmount}
         token1={token1}
         token0={token0}
       />
-      <SelectPricesWidget
+      <SelectPricesWidgetV3
         chainId={chainId}
         token0={token0}
         token1={token1}
@@ -103,7 +103,7 @@ const _Add: FC = () => {
         feeAmount={feeAmount}
         switchTokens={switchTokens}
       />
-      <ConcentratedLiquidityWidget
+      <ConcentratedLiquidityWidgetV3
         chainId={chainId}
         account={address}
         token0={token0}

@@ -14,8 +14,8 @@ import { type Address, ChainKey } from 'sushi'
 import type { SushiSwapV3ChainId } from 'sushi/config'
 import { unwrapToken } from 'sushi/currency'
 import { useAccount } from 'wagmi'
-import { ConcentratedLiquidityWidget } from './ConcentratedLiquidityWidget'
-import { SelectPricesWidget } from './SelectPricesWidget'
+import { ConcentratedLiquidityWidgetV3 } from './ConcentratedLiquidityWidgetV3'
+import { SelectPricesWidgetV3 } from './SelectPricesWidgetV3'
 
 interface NewPositionProps {
   address: Address
@@ -53,7 +53,7 @@ export const NewPosition: FC<NewPositionProps> = ({ address, chainId }) => {
       </div>
       <CardContent>
         <>
-          <SelectPricesWidget
+          <SelectPricesWidgetV3
             chainId={chainId}
             token0={_token0}
             token1={_token1}
@@ -62,7 +62,7 @@ export const NewPosition: FC<NewPositionProps> = ({ address, chainId }) => {
             tokenId={undefined}
             switchTokens={() => setInvertTokens((prev) => !prev)}
           />
-          <ConcentratedLiquidityWidget
+          <ConcentratedLiquidityWidgetV3
             chainId={chainId}
             account={account}
             token0={_token0}

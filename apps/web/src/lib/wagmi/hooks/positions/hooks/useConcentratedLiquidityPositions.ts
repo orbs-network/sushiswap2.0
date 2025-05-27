@@ -8,7 +8,7 @@ import { Position, type SushiSwapV3Pool } from 'sushi/pool/sushiswap-v3'
 import type { Address } from 'viem'
 import { useConfig } from 'wagmi'
 import { usePrices } from '~evm/_common/ui/price-provider/price-provider/use-prices'
-import { getConcentratedLiquidityPools } from '../../pools/actions/getConcentratedLiquidityPool'
+import { getConcentratedLiquidityPoolsV3 } from '../../pools/actions/getConcentratedLiquidityPoolV3'
 import {
   getTokenWithCacheQueryFn,
   getTokenWithQueryCacheHydrate,
@@ -156,7 +156,7 @@ export const useConcentratedLiquidityPositions = ({
 
       const pools = new Map(
         (
-          await getConcentratedLiquidityPools({
+          await getConcentratedLiquidityPoolsV3({
             poolKeys: Array.from(poolKeys.values()),
             config,
           })
