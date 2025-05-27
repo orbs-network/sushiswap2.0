@@ -17,7 +17,7 @@ import type { Position } from 'sushi/pool/sushiswap-v3'
 import { SlippageToleranceStorageKey } from '@sushiswap/hooks'
 import { useSlippageTolerance } from 'src/lib/hooks/useSlippageTolerance'
 import { Web3Input } from 'src/lib/wagmi/components/web3-input'
-import { useConcentratedPositionOwner } from 'src/lib/wagmi/hooks/positions/hooks/useConcentratedPositionOwner'
+import { useConcentratedPositionOwnerV3 } from 'src/lib/wagmi/hooks/positions/hooks/useConcentratedPositionOwnerV3'
 import { Checker } from 'src/lib/wagmi/systems/Checker'
 import { Bound, Field } from '../../lib/constants'
 import { AddSectionReviewModalConcentratedV3 } from './AddSectionReviewModalConcentratedV3'
@@ -66,7 +66,7 @@ export const ConcentratedLiquidityWidgetV3: FC<
   const { onFieldAInput, onFieldBInput } = useConcentratedMintActionHandlers()
   const { independentField, typedValue } = useConcentratedMintState()
   const { data: owner, isInitialLoading: isOwnerLoading } =
-    useConcentratedPositionOwner({ chainId, tokenId })
+    useConcentratedPositionOwnerV3({ chainId, tokenId })
 
   const isOwner = owner === account
 

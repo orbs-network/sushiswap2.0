@@ -39,7 +39,7 @@ import {
   useRewardCampaigns,
 } from 'src/lib/hooks/react-query'
 import { useConcentratedPositionInfo } from 'src/lib/wagmi/hooks/positions/hooks/useConcentratedPositionInfo'
-import { useConcentratedPositionOwner } from 'src/lib/wagmi/hooks/positions/hooks/useConcentratedPositionOwner'
+import { useConcentratedPositionOwnerV3 } from 'src/lib/wagmi/hooks/positions/hooks/useConcentratedPositionOwnerV3'
 import { useConcentratedLiquidityPositionsFromTokenId } from 'src/lib/wagmi/hooks/positions/hooks/useConcentratedPositionsFromTokenId'
 import { useTokenWithCache } from 'src/lib/wagmi/hooks/tokens/useTokenWithCache'
 import { getDefaultTTL } from 'src/lib/wagmi/hooks/utils/hooks/useTransactionDeadline'
@@ -162,7 +162,7 @@ const Component: FC<{ chainId: string; address: string; position: string }> = ({
     tickAtLimit[Bound.LOWER] && tickAtLimit[Bound.UPPER],
   )
 
-  const { data: owner } = useConcentratedPositionOwner({ chainId, tokenId })
+  const { data: owner } = useConcentratedPositionOwnerV3({ chainId, tokenId })
 
   const { data: rewardsData, isLoading: isRewardsLoading } =
     useClaimableRewards({

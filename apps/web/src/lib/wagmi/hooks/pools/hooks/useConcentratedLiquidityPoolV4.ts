@@ -26,7 +26,7 @@ export const useConcentratedLiquidityPoolV4 = ({
   return useQuery({
     queryKey: [
       'useConcentratedLiquidityPoolV4',
-      { chainId, currency0, currency1, feeAmount },
+      { chainId, currency0, currency1, feeAmount, tickSpacing },
     ],
     queryFn: async () => {
       if (!currency0 || !currency1 || !feeAmount || !tickSpacing)

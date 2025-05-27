@@ -76,8 +76,8 @@ export const getConcentratedLiquidityPoolsV4 = async ({
   })
 
   // Split results back into slot0s and liquidities arrays
-  const slot0s = results.filter((_, i) => i % 3 === 1)
-  const liquidities = results.filter((_, i) => i % 3 === 2)
+  const slot0s = results.filter((_, i) => i % 2 === 0)
+  const liquidities = results.filter((_, i) => i % 2 === 1)
 
   return pools.map((pool, index) => {
     const tokens = pools[index]

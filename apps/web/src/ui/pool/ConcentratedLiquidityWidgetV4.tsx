@@ -14,7 +14,7 @@ import {
   type SushiSwapV4Position,
 } from 'src/lib/pool/v4'
 import { Web3Input } from 'src/lib/wagmi/components/web3-input'
-import { useConcentratedPositionOwner } from 'src/lib/wagmi/hooks/positions/hooks/useConcentratedPositionOwner'
+import { useConcentratedPositionOwnerV4 } from 'src/lib/wagmi/hooks/positions/hooks/useConcentratedPositionOwnerV4'
 import { Checker } from 'src/lib/wagmi/systems/Checker'
 import { CheckerProvider } from 'src/lib/wagmi/systems/Checker/Provider'
 import { isWNativeSupported } from 'sushi/config'
@@ -78,7 +78,7 @@ const _ConcentratedLiquidityWidgetV4: FC<ConcentratedLiquidityWidgetV4> = ({
   const { onFieldAInput, onFieldBInput } = useConcentratedMintActionHandlers()
   const { independentField, typedValue } = useConcentratedMintState()
   const { data: owner, isInitialLoading: isOwnerLoading } =
-    useConcentratedPositionOwner({ chainId, tokenId })
+    useConcentratedPositionOwnerV4({ chainId, tokenId })
 
   const isOwner = owner === account
 
@@ -100,8 +100,8 @@ const _ConcentratedLiquidityWidgetV4: FC<ConcentratedLiquidityWidgetV4> = ({
   } = useConcentratedDerivedMintInfoV4({
     chainId,
     account,
-    token0,
-    token1,
+    currency0: token0,
+    currency1: token1,
     baseToken: token0,
     feeAmount,
     tickSpacing,

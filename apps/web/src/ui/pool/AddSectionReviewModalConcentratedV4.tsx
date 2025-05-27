@@ -269,23 +269,27 @@ export const AddSectionReviewModalConcentratedV4: FC<
       tickLower: ticks.LOWER,
       tickUpper: ticks.UPPER,
     }
+
+    const { amount0: amount0Max, amount1: amount1Max } =
+      position.mintAmountsWithSlippage(slippageTolerance)
+
     const data = addCLLiquidityMulticall({
-      isInitialized: hasExistingPosition || !noLiquidity, // todo
+      isInitialized: hasExistingPosition || !noLiquidity,
       sqrtPriceX96: position.pool.sqrtRatioX96,
       tokenId: tokenId ? BigInt(tokenId) : undefined,
       positionConfig,
       liquidity,
       owner: address,
       recipient: address,
-      amount0Max: maxUint128,
-      amount1Max: maxUint128,
+      amount0Max,
+      amount1Max,
       deadline,
       modifyPositionHookData: '0x', // modifyPositionHookData: params.modifyPositionHookData ?? '0x', // todo
       token0Permit2Signature,
       token1Permit2Signature,
     })
 
-    const value = token0.isNative ? position.mintAmounts.amount0 : 0n
+    const value = token0.isNative ? amount0Max : 0n
 
     return {
       to: SUSHISWAP_V4_CL_POSITION_MANAGER[chainId],
@@ -301,7 +305,7 @@ export const AddSectionReviewModalConcentratedV4: FC<
     hasExistingPosition,
     noLiquidity,
     position,
-    // slippageTolerance,
+    slippageTolerance,
     token0,
     token1,
     tokenId,

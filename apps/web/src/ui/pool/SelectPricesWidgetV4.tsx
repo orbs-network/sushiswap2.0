@@ -41,15 +41,16 @@ import React, {
 import { Bound, Field } from 'src/lib/constants'
 import { useTokenAmountDollarValues } from 'src/lib/hooks'
 import { useConcentratedLiquidityPoolStats } from 'src/lib/hooks/react-query'
-import type { PoolKey, SushiSwapV4ChainId } from 'src/lib/pool/v4'
+import {
+  type PoolKey,
+  type SushiSwapV4ChainId,
+  isCurrencySorted,
+  tickToPrice,
+} from 'src/lib/pool/v4'
 import { type Type, tryParseAmount } from 'sushi/currency'
 import { formatPercent } from 'sushi/format'
 import { Fraction } from 'sushi/math'
-import {
-  getCapitalEfficiency,
-  getTokenRatio,
-  tickToPrice,
-} from 'sushi/pool/sushiswap-v3'
+import { getCapitalEfficiency, getTokenRatio } from 'sushi/pool/sushiswap-v3'
 import { useAccount } from 'wagmi'
 import {
   useConcentratedDerivedMintInfoV4,
@@ -105,8 +106,8 @@ interface SelectPricesWidgetV4 {
 
 export const SelectPricesWidgetV4: FC<SelectPricesWidgetV4> = ({
   chainId,
-  token0,
-  token1,
+  token0: currency0,
+  token1: currency1,
   // poolAddress,
   feeAmount,
   tickSpacing,
@@ -140,9 +141,9 @@ export const SelectPricesWidgetV4: FC<SelectPricesWidgetV4> = ({
   } = useConcentratedDerivedMintInfoV4({
     chainId,
     account: address,
-    token0,
-    token1,
-    baseToken: token0,
+    currency0,
+    currency1,
+    baseToken: currency0,
     feeAmount,
     tickSpacing,
     existingPosition: undefined,
@@ -184,8 +185,8 @@ export const SelectPricesWidgetV4: FC<SelectPricesWidgetV4> = ({
     getSetFullRange,
     resetMintState,
   } = useRangeHopCallbacks(
-    token0,
-    token1,
+    currency0,
+    currency1,
     tickSpacing,
     tickLower,
     tickUpper,
@@ -221,7 +222,14 @@ export const SelectPricesWidgetV4: FC<SelectPricesWidgetV4> = ({
 
   const setSingleSided = useCallback(
     (side: 'left' | 'right') => {
-      if (!token0 || !token1 || !price || !feeAmount || !tickSpacing || !pool)
+      if (
+        !currency0 ||
+        !currency1 ||
+        !price ||
+        !feeAmount ||
+        !tickSpacing ||
+        !pool
+      )
         return
 
       getSetFullRange()
@@ -232,8 +240,8 @@ export const SelectPricesWidgetV4: FC<SelectPricesWidgetV4> = ({
             Math.floor(pool.tickCurrent / tickSpacing) * tickSpacing
 
           const newRightPrice = tickToPrice(
-            token0.wrapped,
-            token1.wrapped,
+            currency0,
+            currency1,
             current + (invertPrice ? 1 : 0) * tickSpacing,
           )
           onRightRangeInput(newRightPrice.toFixed(18))
@@ -244,8 +252,8 @@ export const SelectPricesWidgetV4: FC<SelectPricesWidgetV4> = ({
             Math.ceil(pool.tickCurrent / tickSpacing) * tickSpacing
 
           const newLeftPrice = tickToPrice(
-            token0.wrapped,
-            token1.wrapped,
+            currency0,
+            currency1,
             current + (invertPrice ? -1 : 0) * tickSpacing,
           )
           onLeftRangeInput(newLeftPrice.toFixed(18))
@@ -254,8 +262,8 @@ export const SelectPricesWidgetV4: FC<SelectPricesWidgetV4> = ({
       }
     },
     [
-      token0,
-      token1,
+      currency0,
+      currency1,
       price,
       feeAmount,
       tickSpacing,
@@ -371,7 +379,7 @@ export const SelectPricesWidgetV4: FC<SelectPricesWidgetV4> = ({
   )
 
   const isSorted =
-    token0 && token1 && token0.wrapped.sortsBefore(token1.wrapped)
+    currency0 && currency1 && isCurrencySorted(currency0, currency1)
   const leftPrice = useMemo(
     () => (isSorted ? priceLower : priceUpper?.invert()),
     [isSorted, priceLower, priceUpper],
@@ -382,8 +390,8 @@ export const SelectPricesWidgetV4: FC<SelectPricesWidgetV4> = ({
   )
 
   const fiatAmounts = useMemo(
-    () => [tryParseAmount('1', token0), tryParseAmount('1', token1)],
-    [token0, token1],
+    () => [tryParseAmount('1', currency0), tryParseAmount('1', currency1)],
+    [currency0, currency1],
   )
   const fiatAmountsAsNumber = useTokenAmountDollarValues({
     chainId,
@@ -471,7 +479,7 @@ export const SelectPricesWidgetV4: FC<SelectPricesWidgetV4> = ({
             pressed={isSorted}
             size="sm"
           >
-            {isSorted ? token0?.symbol : token1?.symbol}
+            {isSorted ? currency0?.symbol : currency1?.symbol}
           </Toggle>
           <Toggle
             variant="outline"
@@ -479,12 +487,12 @@ export const SelectPricesWidgetV4: FC<SelectPricesWidgetV4> = ({
             pressed={!isSorted}
             size="sm"
           >
-            {isSorted ? token1?.symbol : token0?.symbol}
+            {isSorted ? currency1?.symbol : currency0?.symbol}
           </Toggle>
         </div>
       ) : // <div />
       undefined,
-    [switchTokens, handleSwitchTokens, isSorted, token0, token1],
+    [switchTokens, handleSwitchTokens, isSorted, currency0, currency1],
   )
 
   return (
@@ -508,7 +516,7 @@ export const SelectPricesWidgetV4: FC<SelectPricesWidgetV4> = ({
       <div
         className={classNames(
           'flex flex-col gap-6',
-          !token0 || !token1 ? 'opacity-40' : '',
+          !currency0 || !currency1 ? 'opacity-40' : '',
         )}
       >
         {noLiquidity ? (
@@ -537,7 +545,7 @@ export const SelectPricesWidgetV4: FC<SelectPricesWidgetV4> = ({
                     onValueChange={onStartPriceInput}
                     testdata-id="start-price-input"
                     type="number"
-                    unit={`${token1?.symbol} per ${token0?.symbol}`}
+                    unit={`${currency1?.symbol} per ${currency0?.symbol}`}
                   />
                   <TextFieldDescription>
                     Your pool needs a starting price somewhere between the min.
@@ -545,11 +553,11 @@ export const SelectPricesWidgetV4: FC<SelectPricesWidgetV4> = ({
                   </TextFieldDescription>
                 </div>
               )}
-              {!noLiquidity && (
+              {/* {!noLiquidity && (
                 <LiquidityChartRangeInput
                   chainId={chainId}
-                  currencyA={token0}
-                  currencyB={token1}
+                  currencyA={currency0}
+                  currencyB={currency1}
                   feeAmount={feeAmount}
                   ticksAtLimit={ticksAtLimit}
                   priceRange={priceRange}
@@ -577,12 +585,12 @@ export const SelectPricesWidgetV4: FC<SelectPricesWidgetV4> = ({
                   // interactive={!hasExistingPosition}
                   tokenToggle={tokenToggle}
                 />
-              )}
+              )} */}
             </div>
           )}
           <div className="flex flex-col gap-3">
             <div className="flex lg:hidden">
-              {isLoading || !pool || !token0 || !token1 ? (
+              {isLoading || !pool || !currency0 || !currency1 ? (
                 <SkeletonText fontSize="xs" />
               ) : (
                 <div
@@ -592,11 +600,11 @@ export const SelectPricesWidgetV4: FC<SelectPricesWidgetV4> = ({
                 >
                   <SwitchHorizontalIcon width={16} height={16} />
                   <div className="flex items-baseline gap-1.5">
-                    {invert ? token1.symbol : token0.symbol} ={' '}
+                    {invert ? currency1.symbol : currency0.symbol} ={' '}
                     {pool
-                      .priceOf(invert ? token1.wrapped : token0.wrapped)
+                      .priceOf(invert ? currency1 : currency0)
                       ?.toSignificant(4)}{' '}
-                    {invert ? token0.symbol : token1.symbol}
+                    {invert ? currency0.symbol : currency1.symbol}
                     <span className="text-xs font-normal">
                       ${fiatAmountsAsNumber[invert ? 1 : 0].toFixed(2)}
                     </span>
@@ -637,7 +645,7 @@ export const SelectPricesWidgetV4: FC<SelectPricesWidgetV4> = ({
                 <CardDescription className="flex flex-col gap-3 !text-accent-foreground">
                   <div className="flex flex-wrap items-start justify-between gap-1 flex-col sm:flex-row sm:items-center">
                     <span>
-                      <span className="mr-1">{`Token Ratio (${token0?.symbol} : ${token1?.symbol})`}</span>
+                      <span className="mr-1">{`Token Ratio (${currency0?.symbol} : ${currency1?.symbol})`}</span>
                       <Explainer iconProps={{ className: 'inline mb-0.5' }}>
                         This is the ratio of the cash values of the two
                         underlying tokens in this position.
@@ -791,8 +799,8 @@ export const SelectPricesWidgetV4: FC<SelectPricesWidgetV4> = ({
           <div className="flex flex-col gap-2 sm:flex-row">
             <PriceBlock
               id={'min-price'}
-              token0={token0}
-              token1={token1}
+              currency0={currency0}
+              currency1={currency1}
               label="Min Price"
               value={
                 ticksAtLimit[isSorted ? Bound.LOWER : Bound.UPPER]
@@ -815,8 +823,8 @@ export const SelectPricesWidgetV4: FC<SelectPricesWidgetV4> = ({
             />
             <PriceBlock
               id={'max-price'}
-              token0={token0}
-              token1={token1}
+              currency0={currency0}
+              currency1={currency1}
               label="Max Price"
               value={
                 ticksAtLimit[isSorted ? Bound.UPPER : Bound.LOWER]
@@ -846,8 +854,8 @@ export const SelectPricesWidgetV4: FC<SelectPricesWidgetV4> = ({
 
 interface PriceBlockProps {
   id?: string
-  token0: Type | undefined
-  token1: Type | undefined
+  currency0: Type | undefined
+  currency1: Type | undefined
   label: string
   value: string
   decrement(): string
@@ -867,8 +875,8 @@ export const PriceBlock: FC<PriceBlockProps> = ({
   increment,
   decrementDisabled,
   incrementDisabled,
-  token0,
-  token1,
+  currency0,
+  currency1,
   label,
   value,
   focus = false,
@@ -914,7 +922,7 @@ export const PriceBlock: FC<PriceBlockProps> = ({
       <CardHeader>
         <CardTitle>{label}</CardTitle>
         <CardDescription>
-          {token1?.symbol} per {token0?.symbol}
+          {currency1?.symbol} per {currency0?.symbol}
         </CardDescription>
       </CardHeader>
       <CardContent>
