@@ -55,7 +55,7 @@ import { RadioGroup } from '@headlessui/react'
 import { LockClosedIcon, LockOpenIcon } from '@heroicons/react/24/solid'
 import { ExclamationTriangleIcon } from '@heroicons/react/24/solid'
 import { useConcentratedLiquidityPoolStats } from 'src/lib/hooks/react-query'
-import { useConcentratedLiquidityPositionsFromTokenId } from 'src/lib/wagmi/hooks/positions/hooks/useConcentratedPositionsFromTokenId'
+import { useConcentratedLiquidityPositionsFromTokenIdV3 } from 'src/lib/wagmi/hooks/positions/hooks/useConcentratedPositionsFromTokenIdV3'
 import type { Address } from 'sushi'
 import { formatPercent } from 'sushi/format'
 import { Fraction } from 'sushi/math'
@@ -171,7 +171,7 @@ export const SelectPricesWidgetV3: FC<SelectPricesWidgetV3> = ({
   } = useConcentratedMintState()
 
   const { data: existingPosition, isLoading: positionLoading } =
-    useConcentratedLiquidityPositionsFromTokenId({
+    useConcentratedLiquidityPositionsFromTokenIdV3({
       chainId,
       tokenId,
     })
@@ -490,8 +490,7 @@ export const SelectPricesWidgetV3: FC<SelectPricesWidgetV3> = ({
             {isSorted ? token1?.symbol : token0?.symbol}
           </Toggle>
         </div>
-      ) : // <div />
-      undefined,
+      ) : undefined,
     [switchTokens, handleSwitchTokens, isSorted, token0, token1],
   )
 

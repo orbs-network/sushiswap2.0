@@ -2,25 +2,25 @@ import { useQuery } from '@tanstack/react-query'
 import type { SushiSwapV3ChainId } from 'sushi/config'
 
 import { useConfig } from 'wagmi'
-import { getConcentratedLiquidityPositionsFromTokenIds } from '../actions/getConcentratedLiquidityPositionsFromTokenIds'
+import { getConcentratedLiquidityPositionsFromTokenIdsV3 } from '../actions/getConcentratedLiquidityPositionsFromTokenIdsV3V3'
 
-interface UseConcentratedLiquidityPositionsFromTokenIdsParams {
+interface useConcentratedLiquidityPositionsFromTokenIdV3sParams {
   keys: { tokenId: bigint; chainId: SushiSwapV3ChainId }[] | undefined
   enabled?: boolean
 }
 
-export const useConcentratedLiquidityPositionsFromTokenIds = ({
+export const useConcentratedLiquidityPositionsFromTokenIdV3s = ({
   keys,
   enabled = true,
-}: UseConcentratedLiquidityPositionsFromTokenIdsParams) => {
+}: useConcentratedLiquidityPositionsFromTokenIdV3sParams) => {
   const config = useConfig()
 
   return useQuery({
-    queryKey: ['useConcentratedLiquidityPositionsFromTokenIds', { keys }],
+    queryKey: ['useConcentratedLiquidityPositionsFromTokenIdV3s', { keys }],
     queryFn: async () => {
       if (!keys) return null
 
-      return getConcentratedLiquidityPositionsFromTokenIds({
+      return getConcentratedLiquidityPositionsFromTokenIdsV3({
         tokenIds: keys,
         config,
       })

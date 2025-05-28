@@ -41,7 +41,7 @@ import {
 import { Button } from '@sushiswap/ui'
 import React, { type FC, useCallback, useMemo, useState } from 'react'
 import { useSlippageTolerance } from 'src/lib/hooks/useSlippageTolerance'
-import type { ConcentratedLiquidityPosition } from 'src/lib/wagmi/hooks/positions/types'
+import type { ConcentratedLiquidityPositionV3 } from 'src/lib/wagmi/hooks/positions/types'
 import {
   getDefaultTTL,
   useTransactionDeadline,
@@ -79,7 +79,7 @@ interface ConcentratedLiquidityRemoveWidget {
   token1: Type | undefined
   account: string | undefined
   chainId: SushiSwapV3ChainId
-  positionDetails: ConcentratedLiquidityPosition | undefined
+  positionDetails: ConcentratedLiquidityPositionV3 | undefined
   position: Position | undefined
   onChange?(val: string): void
 }

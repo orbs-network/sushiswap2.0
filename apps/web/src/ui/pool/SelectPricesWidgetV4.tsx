@@ -47,6 +47,7 @@ import {
   isCurrencySorted,
   tickToPrice,
 } from 'src/lib/pool/v4'
+import { useConcentratedLiquidityPositionsFromTokenIdV4 } from 'src/lib/wagmi/hooks/positions/hooks/useConcentratedPositionsFromTokenIdV4'
 import { type Type, tryParseAmount } from 'sushi/currency'
 import { formatPercent } from 'sushi/format'
 import { Fraction } from 'sushi/math'
@@ -94,7 +95,6 @@ interface SelectPricesWidgetV4 {
   chainId: SushiSwapV4ChainId
   token0: Type | undefined
   token1: Type | undefined
-  // poolAddress: Address | undefined
   poolKey: PoolKey | undefined
   feeAmount: number | undefined
   tickSpacing: number | undefined
@@ -108,11 +108,11 @@ export const SelectPricesWidgetV4: FC<SelectPricesWidgetV4> = ({
   chainId,
   token0: currency0,
   token1: currency1,
-  // poolAddress,
+  poolKey,
   feeAmount,
   tickSpacing,
   switchTokens,
-  // tokenId,
+  tokenId,
   children,
   showStartPrice = true,
 }) => {
@@ -147,6 +147,7 @@ export const SelectPricesWidgetV4: FC<SelectPricesWidgetV4> = ({
     feeAmount,
     tickSpacing,
     existingPosition: undefined,
+    poolKey,
   })
 
   const {
@@ -167,12 +168,12 @@ export const SelectPricesWidgetV4: FC<SelectPricesWidgetV4> = ({
     weightLockedCurrencyBase,
   } = useConcentratedMintState()
 
-  // const { data: existingPosition, isLoading: positionLoading } =
-  //   useConcentratedLiquidityPositionsFromTokenId({
-  //     chainId,
-  //     tokenId,
-  //   })
-  // const hasExistingPosition = !!existingPosition && !positionLoading
+  const { data: existingPosition, isLoading: positionLoading } =
+    useConcentratedLiquidityPositionsFromTokenIdV4({
+      chainId,
+      tokenId,
+    })
+  const _hasExistingPosition = !!existingPosition && !positionLoading
 
   const { [Bound.LOWER]: tickLower, [Bound.UPPER]: tickUpper } = ticks
   const { [Bound.LOWER]: priceLower, [Bound.UPPER]: priceUpper } = pricesAtTicks
@@ -490,8 +491,7 @@ export const SelectPricesWidgetV4: FC<SelectPricesWidgetV4> = ({
             {isSorted ? currency1?.symbol : currency0?.symbol}
           </Toggle>
         </div>
-      ) : // <div />
-      undefined,
+      ) : undefined,
     [switchTokens, handleSwitchTokens, isSorted, currency0, currency1],
   )
 

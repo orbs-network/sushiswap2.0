@@ -7,7 +7,7 @@ import {
 } from 'sushi/config'
 import { computeSushiSwapV3PoolAddress } from 'sushi/pool/sushiswap-v3'
 import type { PublicWagmiConfig } from '../../../config/public'
-import type { ConcentratedLiquidityPosition } from '../types'
+import type { ConcentratedLiquidityPositionV3 } from '../types'
 
 const abiShard = [
   {
@@ -41,13 +41,13 @@ const abiShard = [
   },
 ] as const
 
-export const getConcentratedLiquidityPositionsFromTokenIds = async ({
+export const getConcentratedLiquidityPositionsFromTokenIdsV3 = async ({
   tokenIds,
   config,
 }: {
   tokenIds: { chainId: SushiSwapV3ChainId; tokenId: bigint }[]
   config: PublicWagmiConfig
-}): Promise<ConcentratedLiquidityPosition[]> => {
+}): Promise<ConcentratedLiquidityPositionV3[]> => {
   const results = await readContracts(config, {
     contracts: tokenIds.map(({ chainId, tokenId }) => ({
       address: SUSHISWAP_V3_POSITION_HELPER[chainId],

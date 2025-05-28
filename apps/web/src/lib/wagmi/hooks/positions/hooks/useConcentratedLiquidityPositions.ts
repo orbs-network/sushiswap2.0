@@ -14,10 +14,10 @@ import {
   getTokenWithQueryCacheHydrate,
 } from '../../tokens/useTokenWithCache'
 import { getConcentratedLiquidityPositions } from '../actions/getConcentratedLiquidityPositions'
-import type { ConcentratedLiquidityPosition } from '../types'
+import type { ConcentratedLiquidityPositionV3 } from '../types'
 
 interface UseConcentratedLiquidityPositionsData
-  extends Omit<ConcentratedLiquidityPosition, 'token0' | 'token1'> {
+  extends Omit<ConcentratedLiquidityPositionV3, 'token0' | 'token1'> {
   token0: Token
   token1: Token
   pool: SushiSwapV3Pool
@@ -137,7 +137,7 @@ export const useConcentratedLiquidityPositions = ({
         )
       ).filter((position) =>
         Boolean(position.token0 && position.token1),
-      ) as (Omit<ConcentratedLiquidityPosition, 'token0' | 'token1'> & {
+      ) as (Omit<ConcentratedLiquidityPositionV3, 'token0' | 'token1'> & {
         token0: Token
         token1: Token
       })[]

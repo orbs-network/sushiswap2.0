@@ -106,6 +106,7 @@ const _ConcentratedLiquidityWidgetV4: FC<ConcentratedLiquidityWidgetV4> = ({
     feeAmount,
     tickSpacing,
     existingPosition,
+    poolKey,
   })
 
   const formattedAmounts = {

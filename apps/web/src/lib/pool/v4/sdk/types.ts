@@ -16,6 +16,10 @@ export type HooksRegistration = {
   afterSwap?: boolean
   beforeDonate?: boolean
   afterDonate?: boolean
+  beforeSwapReturnsDelta?: boolean
+  afterSwapReturnsDelta?: boolean
+  afterMintReturnsDelta?: boolean
+  afterBurnReturnsDelta?: boolean
 }
 
 export enum POOL_TYPE {
@@ -24,7 +28,7 @@ export enum POOL_TYPE {
 
 export type PoolType = `${POOL_TYPE}`
 
-export type CLPoolParameter = {
+export type CLPoolParameters = {
   /**
    * Hooks registration for the pool
    * @see {@link HooksRegistration}
@@ -69,10 +73,10 @@ export type PoolKey<TPoolType extends PoolType = 'CL'> = {
    *   1. hooks registration callback
    *   2. pool specific parameters: tickSpacing for CLPool
    *
-   * @see CLPoolParameter
+   * @see CLPoolParameters
    * @see HooksRegistration
    */
-  parameters: TPoolType extends 'CL' ? CLPoolParameter : CLPoolParameter
+  parameters: TPoolType extends 'CL' ? CLPoolParameters : CLPoolParameters
 }
 
 /**

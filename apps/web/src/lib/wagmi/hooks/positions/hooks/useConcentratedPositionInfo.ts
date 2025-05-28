@@ -6,9 +6,9 @@ import { stringify } from 'viem'
 
 import { useConfig } from 'wagmi'
 import { getConcentratedLiquidityPoolV3 } from '../../pools/actions/getConcentratedLiquidityPoolV3'
-import { useConcentratedLiquidityPositionsFromTokenId } from './useConcentratedPositionsFromTokenId'
+import { useConcentratedLiquidityPositionsFromTokenIdV3 } from './useConcentratedPositionsFromTokenIdV3'
 
-interface UseConcentratedLiquidityPositionsFromTokenIdParams {
+interface useConcentratedLiquidityPositionsFromTokenIdV3Params {
   token0: Type | undefined
   token1: Type | undefined
   tokenId: number | string | undefined
@@ -22,9 +22,9 @@ export const useConcentratedPositionInfo = ({
   tokenId,
   chainId,
   enabled = true,
-}: UseConcentratedLiquidityPositionsFromTokenIdParams) => {
+}: useConcentratedLiquidityPositionsFromTokenIdV3Params) => {
   const { data: positionDetails } =
-    useConcentratedLiquidityPositionsFromTokenId({
+    useConcentratedLiquidityPositionsFromTokenIdV3({
       chainId,
       tokenId,
     })

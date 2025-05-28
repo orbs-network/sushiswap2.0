@@ -11,6 +11,7 @@ import React, {
 import {
   SUSHISWAP_V4_SUPPORTED_CHAIN_IDS,
   type SushiSwapV4ChainId,
+  getLpFeeFromTotalFee,
 } from 'src/lib/pool/v4'
 import { getPoolKey } from 'src/lib/pool/v4/sdk/utils/getPoolKey'
 import type { EvmChainId } from 'sushi/chain'
@@ -132,11 +133,12 @@ export const useDerivedPoolKey = () => {
 
   return useMemo(() => {
     if (!token0 || !token1) return undefined
+    const adjustedFeeAmount = getLpFeeFromTotalFee(feeAmount)
     return getPoolKey({
       chainId,
       currency0: token0,
       currency1: token1,
-      feeAmount,
+      feeAmount: Number(adjustedFeeAmount),
       tickSpacing,
     })
   }, [chainId, token0, token1, feeAmount, tickSpacing])

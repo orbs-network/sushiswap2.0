@@ -29,15 +29,19 @@ interface ApproveERC20Permit2Props extends ButtonProps {
   tag: string
 }
 
-const ApproveERC20Permit2: FC<ApproveERC20Permit2Props> = (props) => {
+const ApproveERC20Permit2: FC<ApproveERC20Permit2Props> = ({
+  chainId,
+  ttlStorageKey,
+  ...props
+}) => {
   return (
-    <ApproveERC20 {...props} contract={PERMIT2_ADDRESS[props.chainId]}>
-      <_ApproveERC20Permit2 {...props} />
+    <ApproveERC20 {...props} contract={PERMIT2_ADDRESS[chainId]}>
+      <_ApproveERC20Permit2 ttlStorageKey={ttlStorageKey} {...props} />
     </ApproveERC20>
   )
 }
 
-const _ApproveERC20Permit2: FC<ApproveERC20Permit2Props> = ({
+const _ApproveERC20Permit2: FC<Omit<ApproveERC20Permit2Props, 'chainId'>> = ({
   id,
   amount,
   contract,

@@ -45,8 +45,6 @@ export class SushiSwapV4Pool {
 
   public readonly fee: number
 
-  public readonly protocolFee: number
-
   public sqrtRatioX96: bigint
 
   public readonly hooks?: HookData
@@ -105,7 +103,6 @@ export class SushiSwapV4Pool {
     currencyA,
     currencyB,
     fee,
-    protocolFee,
     sqrtRatioX96,
     liquidity,
     tickCurrent,
@@ -118,7 +115,6 @@ export class SushiSwapV4Pool {
     currencyA: Type
     currencyB: Type
     fee: number
-    protocolFee: number
     sqrtRatioX96: BigintIsh
     liquidity: BigintIsh
     tickCurrent: number
@@ -130,7 +126,6 @@ export class SushiSwapV4Pool {
     invariant(Number.isInteger(fee) && fee < 1_000_000, 'FEE')
     ;[this.currency0, this.currency1] = sortCurrencies(currencyA, currencyB)
     this.fee = fee
-    this.protocolFee = protocolFee
     this.sqrtRatioX96 = BigInt(sqrtRatioX96)
     this.liquidity = BigInt(liquidity)
     this.tickCurrent = tickCurrent
@@ -253,7 +248,6 @@ export class SushiSwapV4Pool {
         currencyA: this.currency0,
         currencyB: this.currency1,
         fee: this.fee,
-        protocolFee: this.protocolFee,
         sqrtRatioX96,
         liquidity,
         tickCurrent,
@@ -300,7 +294,6 @@ export class SushiSwapV4Pool {
         currencyA: this.currency0,
         currencyB: this.currency1,
         fee: this.fee,
-        protocolFee: this.protocolFee,
         sqrtRatioX96,
         liquidity,
         tickCurrent,
@@ -350,7 +343,6 @@ export class SushiSwapV4Pool {
         currencyA: this.currency0,
         currencyB: this.currency1,
         fee: this.fee,
-        protocolFee: this.protocolFee,
         sqrtRatioX96,
         liquidity,
         tickCurrent,

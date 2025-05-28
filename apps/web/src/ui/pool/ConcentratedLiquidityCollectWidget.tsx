@@ -10,7 +10,7 @@ import {
 } from '@sushiswap/ui'
 import { Button } from '@sushiswap/ui'
 import { type FC, useMemo, useState } from 'react'
-import type { ConcentratedLiquidityPosition } from 'src/lib/wagmi/hooks/positions/types'
+import type { ConcentratedLiquidityPositionV3 } from 'src/lib/wagmi/hooks/positions/types'
 import { Checker } from 'src/lib/wagmi/systems/Checker'
 import type { Address, EvmChainId, Position } from 'sushi'
 import { Amount, Native, type Type, unwrapToken } from 'sushi/currency'
@@ -19,7 +19,7 @@ import { ConcentratedLiquidityCollectButton } from './ConcentratedLiquidityColle
 
 interface ConcentratedLiquidityCollectWidget {
   position: Position | undefined
-  positionDetails: ConcentratedLiquidityPosition | undefined
+  positionDetails: ConcentratedLiquidityPositionV3 | undefined
   token0: Type | undefined
   token1: Type | undefined
   chainId: EvmChainId

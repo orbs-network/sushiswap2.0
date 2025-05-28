@@ -7,7 +7,7 @@ import {
   sendAnalyticsEvent,
 } from '@sushiswap/telemetry'
 import { type FC, type ReactElement, useCallback, useMemo } from 'react'
-import type { ConcentratedLiquidityPosition } from 'src/lib/wagmi/hooks/positions/types'
+import type { ConcentratedLiquidityPositionV3 } from 'src/lib/wagmi/hooks/positions/types'
 import type { EvmChainId } from 'sushi/chain'
 import {
   SUSHISWAP_V3_POSITION_MANAGER,
@@ -33,7 +33,7 @@ import {
 import { useRefetchBalances } from '~evm/_common/ui/balance-provider/use-refetch-balances'
 
 interface ConcentratedLiquidityCollectButton {
-  positionDetails: ConcentratedLiquidityPosition | undefined
+  positionDetails: ConcentratedLiquidityPositionV3 | undefined
   position: Position | undefined
   token0: Type | undefined
   token1: Type | undefined

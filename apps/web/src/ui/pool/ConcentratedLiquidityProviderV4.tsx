@@ -11,11 +11,10 @@ import {
 } from 'react'
 import { Bound, Field } from 'src/lib/constants'
 import {
+  type PoolKey,
   type SushiSwapV4ChainId,
   SushiSwapV4Pool,
-  type SushiSwapV4PoolState,
   SushiSwapV4Position,
-  getCLPool,
   getTickToPrice,
   priceToClosestTick,
   sortCurrencies,
@@ -23,7 +22,6 @@ import {
   tryParseTick,
 } from 'src/lib/pool/v4'
 import { useConcentratedLiquidityPoolV4 } from 'src/lib/wagmi/hooks/pools/hooks/useConcentratedLiquidityPoolV4'
-import { TICK_SPACINGS } from 'sushi/config'
 import { Amount, Price, type Type, tryParseAmount } from 'sushi/currency'
 import { withoutScientificNotation } from 'sushi/format'
 import { Rounding } from 'sushi/math'
@@ -226,6 +224,7 @@ export function useConcentratedDerivedMintInfoV4({
   currency1: currencyB,
   baseToken: baseCurrency,
   chainId,
+  poolKey,
   feeAmount,
   tickSpacing,
   existingPosition,
@@ -234,6 +233,7 @@ export function useConcentratedDerivedMintInfoV4({
   currency0: Type | undefined
   currency1: Type | undefined
   baseToken: Type | undefined
+  poolKey: PoolKey | undefined
   chainId: SushiSwapV4ChainId
   feeAmount: number | undefined
   tickSpacing: number | undefined
@@ -301,8 +301,7 @@ export function useConcentratedDerivedMintInfoV4({
     chainId,
     currency0: currencies[Field.CURRENCY_A],
     currency1: currencies[Field.CURRENCY_B],
-    feeAmount,
-    tickSpacing,
+    poolKey,
   })
 
   const { data: pool, isLoading, isError } = usePool
@@ -382,7 +381,6 @@ export function useConcentratedDerivedMintInfoV4({
         currencyA,
         currencyB,
         fee: feeAmount,
-        protocolFee: 0,
         sqrtRatioX96: currentSqrt,
         liquidity: 0n,
         tickCurrent: currentTick,
