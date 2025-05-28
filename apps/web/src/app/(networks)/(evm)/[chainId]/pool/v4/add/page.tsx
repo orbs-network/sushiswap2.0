@@ -47,7 +47,6 @@ const _Add: FC = () => {
     feeAmount,
     tickSpacing,
     setFeeAmount,
-    setTickSpacing,
     tokensLoading,
     tokenId,
     switchTokens,
@@ -58,6 +57,7 @@ const _Add: FC = () => {
   const router = useRouter()
 
   const [_invert, _setInvert] = useState(false)
+  // TODO
   const { data: _position } = useConcentratedPositionInfo({
     chainId,
     token0,
@@ -85,7 +85,6 @@ const _Add: FC = () => {
       <SelectFeeConcentratedWidgetV4
         feeAmount={feeAmount}
         setFeeAmount={setFeeAmount}
-        setTickSpacing={setTickSpacing}
         token1={token1}
         token0={token0}
       />

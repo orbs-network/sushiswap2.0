@@ -49,7 +49,6 @@ export const FEE_OPTIONS = [
 interface SelectFeeConcentratedWidgetV4 {
   feeAmount: number | undefined
   setFeeAmount: (fee: number) => void
-  setTickSpacing: (tickSpacing: number) => void
   token0: Type | undefined
   token1: Type | undefined
   title?: string
@@ -59,35 +58,13 @@ interface SelectFeeConcentratedWidgetV4 {
 export const SelectFeeConcentratedWidgetV4: FC<SelectFeeConcentratedWidgetV4> =
   memo(function SelectFeeWidget({
     feeAmount,
-    setFeeAmount: _setFeeAmount,
-    setTickSpacing,
+    setFeeAmount,
     token0,
     token1,
     disableIfNotExists = false,
   }) {
     const trace = useTrace()
 
-    const setFeeAmount = useCallback(
-      (fee: number) => {
-        setTickSpacing(TICK_SPACINGS[fee as SushiSwapV3FeeAmount])
-        _setFeeAmount(fee)
-        sendAnalyticsEvent(LiquidityEventName.SELECT_LIQUIDITY_POOL_FEE_TIER, {
-          chain_id: token0?.chainId,
-          label: [token0?.symbol, token1?.symbol].join('/'),
-          action: FeePoolSelectAction.MANUAL,
-          fee,
-          ...trace,
-        })
-      },
-      [
-        _setFeeAmount,
-        setTickSpacing,
-        trace,
-        token0?.chainId,
-        token0?.symbol,
-        token1?.symbol,
-      ],
-    )
     // const { data: pools, isLoading } = usePoolsByTokenPair(
     //   token0?.wrapped.id,
     //   token1?.wrapped.id,

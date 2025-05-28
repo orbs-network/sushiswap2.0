@@ -14,6 +14,7 @@ import {
 } from 'src/lib/pool/v4'
 import { getPoolKey } from 'src/lib/pool/v4/sdk/utils/getPoolKey'
 import type { EvmChainId } from 'sushi/chain'
+import { TICK_SPACINGS as V3_TICK_SPACINGS } from 'sushi/config'
 import {
   ConcentratedLiquidityURLStateProvider,
   useConcentratedLiquidityURLState,
@@ -78,8 +79,22 @@ const _ConcentratedLiquidityURLStateProviderV4: FC<
       const _searchParams = new URLSearchParams(
         Array.from(searchParams.entries()),
       )
-      console.log('_searchParams', _searchParams.toString())
       _searchParams.set('tickSpacing', tickSpacing.toString())
+      void push(`${pathname}?${_searchParams.toString()}`, { scroll: false })
+    }
+
+    const setFeeAmount = (feeAmount: number) => {
+      const _searchParams = new URLSearchParams(
+        Array.from(searchParams.entries()),
+      )
+      _searchParams.set('feeAmount', feeAmount.toString())
+      feeAmount in V3_TICK_SPACINGS &&
+        _searchParams.set(
+          'tickSpacing',
+          V3_TICK_SPACINGS[
+            feeAmount as keyof typeof V3_TICK_SPACINGS
+          ].toString(),
+        )
       void push(`${pathname}?${_searchParams.toString()}`, { scroll: false })
     }
 
@@ -87,7 +102,7 @@ const _ConcentratedLiquidityURLStateProviderV4: FC<
       ...baseState,
       chainId: baseState.chainId as SushiSwapV4ChainId,
       feeAmount: baseState.feeAmount as number,
-      setFeeAmount: baseState.setFeeAmount as (feeAmount: number) => void,
+      setFeeAmount,
       tickSpacing,
       setTickSpacing,
     }
