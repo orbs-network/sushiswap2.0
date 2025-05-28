@@ -1,12 +1,6 @@
 import { RadioGroup } from '@headlessui/react'
 import { ChevronRightIcon } from '@heroicons/react-v1/solid'
 import {
-  FeePoolSelectAction,
-  LiquidityEventName,
-  sendAnalyticsEvent,
-  useTrace,
-} from '@sushiswap/telemetry'
-import {
   Button,
   Card,
   CardDescription,
@@ -22,9 +16,10 @@ import {
   Toggle,
 } from '@sushiswap/ui'
 import { Dots } from '@sushiswap/ui'
-import React, { type FC, memo, useCallback, useMemo } from 'react'
-import type { PoolBase, PoolV3 } from 'sushi'
-import { SushiSwapV3FeeAmount, TICK_SPACINGS } from 'sushi/config'
+import React, { type FC, memo, useMemo } from 'react'
+import { useV4PoolsByTokenPair } from 'src/lib/hooks/react-query/pools/useV4PoolsByTokenPair'
+import type { SushiSwapV4ChainId } from 'src/lib/pool/v4'
+import { SushiSwapV3FeeAmount } from 'sushi/config'
 import type { Type } from 'sushi/currency'
 
 export const FEE_OPTIONS = [
@@ -49,6 +44,7 @@ export const FEE_OPTIONS = [
 interface SelectFeeConcentratedWidgetV4 {
   feeAmount: number | undefined
   setFeeAmount: (fee: number) => void
+  chainId: SushiSwapV4ChainId
   token0: Type | undefined
   token1: Type | undefined
   title?: string
@@ -59,50 +55,43 @@ export const SelectFeeConcentratedWidgetV4: FC<SelectFeeConcentratedWidgetV4> =
   memo(function SelectFeeWidget({
     feeAmount,
     setFeeAmount,
+    chainId,
     token0,
     token1,
     disableIfNotExists = false,
   }) {
-    const trace = useTrace()
-
-    // const { data: pools, isLoading } = usePoolsByTokenPair(
-    //   token0?.wrapped.id,
-    //   token1?.wrapped.id,
-    // )
-
-    const [pools, isLoading]: [PoolV3<PoolBase>[], boolean] = [[], false]
-
-    const tvlDistribution = useMemo(
-      () => {
-        const tvlDistribution = new Map<
-          (typeof FEE_OPTIONS)[number]['value'],
-          number
-        >()
-
-        if (!pools) return tvlDistribution
-
-        const totalTvl = pools?.reduce(
-          (acc, pool) => acc + Number(pool.liquidityUSD),
-          0,
-        )
-
-        pools?.forEach((pool) => {
-          const feeOption = FEE_OPTIONS.find(
-            (option) => option.value / 1_000_000 === pool.swapFee,
-          )
-          if (!feeOption) return
-
-          const tvlShare = pool.liquidityUSD / totalTvl
-          if (Number.isNaN(tvlShare)) return
-          tvlDistribution.set(feeOption.value, tvlShare)
-        })
-
-        return tvlDistribution
-      },
-      [
-        // pools
-      ],
+    const { data: pools, isLoading } = useV4PoolsByTokenPair(
+      chainId,
+      token0?.id,
+      token1?.id,
     )
+
+    const tvlDistribution = useMemo(() => {
+      const tvlDistribution = new Map<
+        (typeof FEE_OPTIONS)[number]['value'],
+        number
+      >()
+
+      if (!pools) return tvlDistribution
+
+      const totalTvl = pools?.reduce(
+        (acc, pool) => acc + Number(pool.liquidityUSD),
+        0,
+      )
+
+      pools?.forEach((pool) => {
+        const feeOption = FEE_OPTIONS.find(
+          (option) => option.value / 1_000_000 === pool.swapFee,
+        )
+        if (!feeOption) return
+
+        const tvlShare = pool.liquidityUSD / totalTvl
+        if (Number.isNaN(tvlShare)) return
+        tvlDistribution.set(feeOption.value, tvlShare)
+      })
+
+      return tvlDistribution
+    }, [pools])
 
     return (
       <FormSection

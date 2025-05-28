@@ -83,10 +83,11 @@ const _Add: FC = () => {
         includeNative={isWNativeSupported(chainId)}
       />
       <SelectFeeConcentratedWidgetV4
+        chainId={chainId}
         feeAmount={feeAmount}
         setFeeAmount={setFeeAmount}
-        token1={token1}
         token0={token0}
+        token1={token1}
       />
       <SelectPricesWidgetV4
         chainId={chainId}

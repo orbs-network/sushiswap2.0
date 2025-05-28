@@ -23,7 +23,7 @@ import {
 } from '@sushiswap/ui'
 import { Dots } from '@sushiswap/ui'
 import React, { type FC, memo, useCallback, useMemo } from 'react'
-import { usePoolsByTokenPair } from 'src/lib/hooks/usePoolsByTokenPair'
+import { useV3PoolsByTokenPair } from 'src/lib/hooks/react-query/pools/useV3PoolsByTokenPair'
 import { SushiSwapV3FeeAmount } from 'sushi/config'
 import type { Type } from 'sushi/currency'
 
@@ -78,7 +78,7 @@ export const SelectFeeConcentratedWidgetV3: FC<SelectFeeConcentratedWidgetV3> =
       },
       [_setFeeAmount, trace, token0?.chainId, token0?.symbol, token1?.symbol],
     )
-    const { data: pools, isLoading } = usePoolsByTokenPair(
+    const { data: pools, isLoading } = useV3PoolsByTokenPair(
       token0?.wrapped.id,
       token1?.wrapped.id,
     )
