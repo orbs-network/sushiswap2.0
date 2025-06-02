@@ -9,7 +9,7 @@ import { getPriceRangeWithTokenRatio } from 'sushi/pool/sushiswap-v3'
 import colors from 'tailwindcss/colors'
 
 import { Chart } from './Chart'
-import { useDensityChartData } from './hooks'
+import { UseDensityChartDataV3 } from './hooks'
 import type { HandleType, ZoomLevels } from './types'
 
 const brushKeyToFieldKey: Record<HandleType, 'LOWER' | 'UPPER'> = {
@@ -98,7 +98,7 @@ export default function LiquidityChartRangeInput({
   const isSorted =
     currencyA && currencyB && currencyA?.wrapped.sortsBefore(currencyB?.wrapped)
 
-  const { isLoading, error, data } = useDensityChartData({
+  const { isLoading, error, data } = UseDensityChartDataV3({
     chainId,
     // token0: currencyA,
     token0: undefined,

@@ -15,7 +15,7 @@ import { type FC, useState } from 'react'
 
 import { ChainKey } from 'sushi/chain'
 import type { SushiSwapChainId } from 'sushi/config'
-import { ConcentratedPositionsTable } from './ConcentratedPositionsTable/ConcentratedPositionsTable'
+import { ConcentratedPositionsTableV3 } from './ConcentratedPositionsTable/ConcentratedPositionsTableV3'
 import { PositionsTable } from './PositionsTable'
 
 const ITEMS: { id: string; value: string; children: React.ReactNode }[] = [
@@ -92,7 +92,7 @@ export const PositionsTab: FC<{ chainId: SushiSwapChainId }> = ({
           ) : null}
         </div>
         <TabsContent value="v3">
-          <ConcentratedPositionsTable
+          <ConcentratedPositionsTableV3
             chainId={chainId}
             hideNewPositionButton={true}
             hideClosedPositions={hideClosedPositions}

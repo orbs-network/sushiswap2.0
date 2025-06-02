@@ -47,7 +47,7 @@ import {
   isCurrencySorted,
   tickToPrice,
 } from 'src/lib/pool/v4'
-import { useConcentratedLiquidityPositionsFromTokenIdV4 } from 'src/lib/wagmi/hooks/positions/hooks/useConcentratedPositionsFromTokenIdV4'
+import { useConcentratedLiquidityPositionsV3FromTokenIdV4 } from 'src/lib/wagmi/hooks/positions/hooks/useConcentratedPositionsFromTokenIdV4'
 import { type Type, tryParseAmount } from 'sushi/currency'
 import { formatPercent } from 'sushi/format'
 import { Fraction } from 'sushi/math'
@@ -143,7 +143,7 @@ export const SelectPricesWidgetV4: FC<SelectPricesWidgetV4> = ({
     account: address,
     currency0,
     currency1,
-    baseToken: currency0,
+    baseCurrency: currency0,
     feeAmount,
     tickSpacing,
     existingPosition: undefined,
@@ -169,7 +169,7 @@ export const SelectPricesWidgetV4: FC<SelectPricesWidgetV4> = ({
   } = useConcentratedMintState()
 
   const { data: existingPosition, isLoading: positionLoading } =
-    useConcentratedLiquidityPositionsFromTokenIdV4({
+    useConcentratedLiquidityPositionsV3FromTokenIdV4({
       chainId,
       tokenId,
     })

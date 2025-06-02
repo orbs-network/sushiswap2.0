@@ -8,15 +8,15 @@ import type { SushiSwapV3ChainId } from 'sushi/config'
 import type { Address } from 'viem'
 import { useConcentratedDerivedMintInfo } from './ConcentratedLiquidityProvider'
 import LiquidityChartRangeInput from './LiquidityChartRangeInput'
-import { useDensityChartData } from './LiquidityChartRangeInput/hooks'
+import { UseDensityChartDataV3 } from './LiquidityChartRangeInput/hooks'
 
-interface LiquidityDepthWidget {
+interface LiquidityDepthWidgetV3 {
   address: Address
   chainId: SushiSwapV3ChainId
 }
 
 // ID has to be set (and unique) if there are multiple charts on the same page
-export const LiquidityDepthWidget: FC<LiquidityDepthWidget> = ({
+export const LiquidityDepthWidgetV3: FC<LiquidityDepthWidgetV3> = ({
   address,
   chainId,
 }) => {
@@ -35,7 +35,7 @@ export const LiquidityDepthWidget: FC<LiquidityDepthWidget> = ({
     existingPosition: undefined,
   })
 
-  const { isLoading, data } = useDensityChartData({
+  const { isLoading, data } = UseDensityChartDataV3({
     chainId,
     token0: poolStats?.token0,
     token1: poolStats?.token1,

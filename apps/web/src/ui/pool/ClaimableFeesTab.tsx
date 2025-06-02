@@ -10,7 +10,7 @@ import {
 import type { ColumnDef, PaginationState } from '@tanstack/react-table'
 import React, { type FC, useMemo, useState } from 'react'
 import { useAllPrices } from 'src/lib/hooks/react-query'
-import { useConcentratedLiquidityPositions } from 'src/lib/wagmi/hooks/positions/hooks/useConcentratedLiquidityPositions'
+import { useConcentratedLiquidityPositionsV3 } from 'src/lib/wagmi/hooks/positions/hooks/useConcentratedLiquidityPositionsV3'
 import type { ConcentratedLiquidityPositionWithV3Pool } from 'src/lib/wagmi/hooks/positions/types'
 import { type SushiSwapV3ChainId, SushiSwapV3ChainIds } from 'sushi/config'
 import { Amount, type Type } from 'sushi/currency'
@@ -38,7 +38,7 @@ const COLUMNS = [
 export const ClaimableFeesTab: FC = () => {
   const { address, isConnecting } = useAccount()
   const { data: _data, isInitialLoading: isPositionsLoading } =
-    useConcentratedLiquidityPositions({
+    useConcentratedLiquidityPositionsV3({
       account: address,
       chainIds: SushiSwapV3ChainIds,
     })

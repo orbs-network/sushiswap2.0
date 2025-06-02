@@ -1,9 +1,9 @@
-import type { V3Pool } from '@sushiswap/graph-client/data-api'
+import type { V4Pool } from '@sushiswap/graph-client/v4'
 import { Card } from '@sushiswap/ui'
 import React, { type FC, useMemo, useState } from 'react'
-import { type Address, SushiSwapProtocol } from 'sushi'
-import type { SushiSwapV3ChainId } from 'sushi/config'
-import { LiquidityDepthWidgetV3 } from './LiquidityDepthWidgetV3'
+import type { PoolKey } from 'src/lib/pool/v4'
+import { SushiSwapProtocol } from 'sushi'
+import { LiquidityDepthWidgetV4 } from './LiquidityDepthWidgetV4'
 import { PoolChartGraph } from './PoolChartGraph'
 import { PoolChartPeriod, PoolChartPeriods } from './PoolChartPeriods'
 import { PoolChartType, PoolChartTypes } from './PoolChartTypes'
@@ -16,12 +16,11 @@ const statisticsChart = [
 ]
 
 interface Charts {
-  address: Address
-  chainId: SushiSwapV3ChainId
-  pool: V3Pool
+  pool: V4Pool
+  poolKey: PoolKey
 }
 
-export const StatisticsChartsV3: FC<Charts> = ({ address, chainId, pool }) => {
+export const StatisticsChartsV4: FC<Charts> = ({ pool, poolKey }) => {
   const [chart, setChart] = useState<PoolChartType>(statisticsChart[0])
   const [period, setPeriod] = useState<PoolChartPeriod>(PoolChartPeriod.Month)
 
@@ -56,7 +55,7 @@ export const StatisticsChartsV3: FC<Charts> = ({ address, chainId, pool }) => {
         </div>
       </div>
       {chart === PoolChartType.Depth ? (
-        <LiquidityDepthWidgetV3 chainId={chainId} address={address} />
+        <LiquidityDepthWidgetV4 poolKey={poolKey} pool={pool} />
       ) : (
         <PoolChartGraph
           chart={chart}

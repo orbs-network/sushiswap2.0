@@ -1,5 +1,5 @@
 import type { Type } from 'sushi/currency'
-import { zeroAddress } from 'viem'
+import { type Address, zeroAddress } from 'viem'
 import {
   SUSHISWAP_V4_CL_POOL_MANAGER,
   type SushiSwapV4ChainId,
@@ -15,15 +15,25 @@ export function getPoolKey({
   hooks,
 }: {
   chainId: SushiSwapV4ChainId
-  currency0: Type
-  currency1: Type
+  currency0: Type | Address
+  currency1: Type | Address
   feeAmount: number
   tickSpacing: number
   hooks?: HookData
 }) {
   return {
-    currency0: currency0.isNative ? zeroAddress : currency0.wrapped.address,
-    currency1: currency1.isNative ? zeroAddress : currency1.wrapped.address,
+    currency0:
+      typeof currency0 === 'string'
+        ? currency0
+        : currency0.isNative
+          ? zeroAddress
+          : currency0.wrapped.address,
+    currency1:
+      typeof currency1 === 'string'
+        ? currency1
+        : currency1.isNative
+          ? zeroAddress
+          : currency1.wrapped.address,
     hooks: hooks?.address ?? zeroAddress,
     poolManager: SUSHISWAP_V4_CL_POOL_MANAGER[chainId],
     fee: feeAmount,

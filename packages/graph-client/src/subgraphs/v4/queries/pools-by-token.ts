@@ -67,15 +67,13 @@ export async function getV4BasePoolsByToken(
   //   throw new Error('Invalid chainId')
   // }
 
-  const tokens = [variables.token0, variables.token1] as const
-
   const result = await request(
     {
       url,
       document: V4PoolsByTokensQuery,
       variables: {
-        token0: tokens[0].toLowerCase(),
-        token1: tokens[1].toLowerCase(),
+        token0: variables.token0.toLowerCase(),
+        token1: variables.token1.toLowerCase(),
       },
     },
     options,

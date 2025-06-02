@@ -1,34 +1,36 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import type { SushiSwapV4ChainId } from 'src/lib/pool/v4'
 import { useConfig } from 'wagmi'
-import { getConcentratedLiquidityPositionsFromTokenIdsV4 } from '../actions/getConcentratedLiquidityPositionsFromTokenIdsV4'
+import { getConcentratedLiquidityPositionsV3FromTokenIdsV4 } from '../actions/getConcentratedLiquidityPositionsFromTokenIdsV4'
 
-interface useConcentratedLiquidityPositionsFromTokenIdV4Params {
+interface useConcentratedLiquidityPositionsV3FromTokenIdV4Params {
   tokenId: number | string | undefined
   chainId: SushiSwapV4ChainId
   enabled?: boolean
 }
 
-export const useConcentratedLiquidityPositionsFromTokenIdV4 = ({
+export const useConcentratedLiquidityPositionsV3FromTokenIdV4 = ({
   tokenId,
   chainId,
   enabled = true,
-}: useConcentratedLiquidityPositionsFromTokenIdV4Params) => {
+}: useConcentratedLiquidityPositionsV3FromTokenIdV4Params) => {
   const config = useConfig()
 
   return useQuery({
     queryKey: [
-      'useConcentratedLiquidityPositionsFromTokenIdV4',
+      'useConcentratedLiquidityPositionsV3FromTokenIdV4',
       { chainId, tokenIds: tokenId },
     ],
     queryFn: async () => {
       // Shouldn't happen
       if (!tokenId) throw new Error('TokenId is undefined')
 
-      const positions = await getConcentratedLiquidityPositionsFromTokenIdsV4({
-        tokenIds: [{ tokenId: BigInt(tokenId), chainId }],
-        config,
-      })
+      const positions = await getConcentratedLiquidityPositionsV3FromTokenIdsV4(
+        {
+          tokenIds: [{ tokenId: BigInt(tokenId), chainId }],
+          config,
+        },
+      )
 
       return positions[0]
     },

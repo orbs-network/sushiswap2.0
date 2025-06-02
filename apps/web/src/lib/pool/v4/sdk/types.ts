@@ -37,6 +37,8 @@ export type CLPoolParameters = {
   tickSpacing: number
 }
 
+// TODO: rename to V4PoolKey
+
 /**
  * PoolKey is a unique identifier for a pool
  *

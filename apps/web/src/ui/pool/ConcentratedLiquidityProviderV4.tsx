@@ -222,7 +222,7 @@ export function useConcentratedDerivedMintInfoV4({
   account,
   currency0: currencyA,
   currency1: currencyB,
-  baseToken: baseCurrency,
+  baseCurrency,
   chainId,
   poolKey,
   feeAmount,
@@ -232,7 +232,7 @@ export function useConcentratedDerivedMintInfoV4({
   account: string | undefined
   currency0: Type | undefined
   currency1: Type | undefined
-  baseToken: Type | undefined
+  baseCurrency: Type | undefined
   poolKey: PoolKey | undefined
   chainId: SushiSwapV4ChainId
   feeAmount: number | undefined

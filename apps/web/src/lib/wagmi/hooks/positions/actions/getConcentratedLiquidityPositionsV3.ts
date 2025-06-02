@@ -71,7 +71,7 @@ const abiShard = [
 const BATCH_SIZE = 25
 const MAX_ENTRIES = 100
 
-export const getConcentratedLiquidityPositions = async ({
+export const getConcentratedLiquidityPositionsV3 = async ({
   account,
   chainIds,
   config,

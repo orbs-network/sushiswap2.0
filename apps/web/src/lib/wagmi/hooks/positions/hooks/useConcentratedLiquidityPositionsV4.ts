@@ -1,0 +1,226 @@
+// import { useCustomTokens } from '@sushiswap/hooks'
+// import { useQuery } from '@tanstack/react-query'
+// import { useMemo } from 'react'
+// import { useAllPrices } from 'src/lib/hooks/react-query'
+// import type { SushiSwapV4ChainId, SushiSwapV4Pool } from 'src/lib/pool/v4'
+// import { Amount, type Token } from 'sushi/currency'
+// import { Position, type SushiSwapV3Pool } from 'sushi/pool/sushiswap-v3'
+// import type { Address } from 'viem'
+// import { useConfig } from 'wagmi'
+// import { usePrices } from '~evm/_common/ui/price-provider/price-provider/use-prices'
+// import { getConcentratedLiquidityPoolsV3 } from '../../pools/actions/getConcentratedLiquidityPoolV3'
+// import {
+//   getTokenWithCacheQueryFn,
+//   getTokenWithQueryCacheHydrate,
+// } from '../../tokens/useTokenWithCache'
+// import { getConcentratedLiquidityPositionsV3 } from '../actions/getConcentratedLiquidityPositionsV3'
+// import type {
+//   ConcentratedLiquidityPositionV3,
+//   ConcentratedLiquidityPositionV4,
+// } from '../types'
+
+// interface useConcentratedLiquidityPositionsV4Data
+//   extends Omit<ConcentratedLiquidityPositionV4, 'token0' | 'token1'> {
+//   token0: Token
+//   token1: Token
+//   pool: SushiSwapV4Pool
+//   position: {
+//     position: Position
+//     positionUSD: number
+//     unclaimedUSD: number
+//   }
+// }
+
+// interface useConcentratedLiquidityPositionsV4Params {
+//   account: Address | undefined
+//   chainIds: readonly SushiSwapV4ChainId[]
+//   enabled?: boolean
+// }
+
+// export const useConcentratedLiquidityPositionsV4 = ({
+//   account,
+//   chainIds,
+//   enabled = true,
+// }: useConcentratedLiquidityPositionsV4Params) => {
+//   const { data: customTokens, hasToken } = useCustomTokens()
+
+//   const {
+//     data: allPrices,
+//     isError: isAllPricesError,
+//     isLoading: isAllPricesInitialLoading,
+//   } = useAllPrices({
+//     enabled: chainIds.length > 1,
+//   })
+//   const {
+//     data: chainPrices,
+//     isError: isChainPricesError,
+//     isLoading: isChainPricesInitialLoading,
+//   } = usePrices({
+//     chainId: chainIds?.length === 1 ? chainIds[0] : undefined,
+//   })
+
+//   const prices = useMemo(() => {
+//     if (chainIds.length > 1) {
+//       return allPrices
+//     }
+
+//     if (chainIds.length === 1 && chainPrices) {
+//       return new Map([[chainIds[0], chainPrices]])
+//     }
+//   }, [allPrices, chainPrices, chainIds])
+//   const isPriceInitialLoading =
+//     isAllPricesInitialLoading || isChainPricesInitialLoading
+//   const isPriceError = isAllPricesError || isChainPricesError
+
+//   const config = useConfig()
+
+//   const {
+//     data: positions,
+//     isError: isPositionsError,
+//     isLoading: isPositionsInitialLoading,
+//   } = useQuery({
+//     queryKey: [
+//       'useConcentratedLiquidityPositionsV4',
+//       { chainIds, account, prices },
+//     ],
+//     queryFn: async () => {
+//       const positions = await getConcentratedLiquidityPositionsV3({
+//         account,
+//         chainIds,
+//         config,
+//       })
+
+//       if (!positions.length) return []
+
+//       const positionsWithTokens = (
+//         await Promise.all(
+//           positions.map(async (position) => {
+//             const [token0Data, token1Data] = await Promise.all([
+//               getTokenWithCacheQueryFn({
+//                 chainId: position.chainId,
+//                 hasToken,
+//                 customTokens,
+//                 address: position.token0,
+//                 config,
+//               }),
+//               getTokenWithCacheQueryFn({
+//                 chainId: position.chainId,
+//                 hasToken,
+//                 customTokens,
+//                 address: position.token1,
+//                 config,
+//               }),
+//             ])
+
+//             return {
+//               ...position,
+//               token0: getTokenWithQueryCacheHydrate(
+//                 position.chainId,
+//                 token0Data,
+//               ),
+//               token1: getTokenWithQueryCacheHydrate(
+//                 position.chainId,
+//                 token1Data,
+//               ),
+//             }
+//           }),
+//         )
+//       ).filter((position) =>
+//         Boolean(position.token0 && position.token1),
+//       ) as (Omit<ConcentratedLiquidityPositionV3, 'token0' | 'token1'> & {
+//         token0: Token
+//         token1: Token
+//       })[]
+
+//       const poolKeys = new Map(
+//         positionsWithTokens.map(({ chainId, token0, token1, fee }) => [
+//           getPoolKey({ chainId, token0, token1, fee }),
+//           {
+//             chainId: chainId,
+//             token0: token0,
+//             token1: token1,
+//             feeAmount: fee,
+//           },
+//         ]),
+//       )
+
+//       const pools = new Map(
+//         (
+//           await getConcentratedLiquidityPoolsV3({
+//             poolKeys: Array.from(poolKeys.values()),
+//             config,
+//           })
+//         )
+//           .filter((pool): pool is SushiSwapV3Pool => Boolean(pool))
+//           .map((pool) => [getPoolKey(pool), pool]),
+//       )
+
+//       return positionsWithTokens
+//         .map((_position) => {
+//           const {
+//             chainId,
+//             token0,
+//             token1,
+//             fee,
+//             liquidity,
+//             tickLower,
+//             tickUpper,
+//             fees,
+//           } = _position
+//           const pool = pools.get(getPoolKey({ chainId, token0, token1, fee }))
+//           if (!pool) return undefined
+
+//           const position = new Position({
+//             pool,
+//             liquidity,
+//             tickLower,
+//             tickUpper,
+//           })
+
+//           const amountToUsd = (amount: Amount<Token>) => {
+//             const _price = prices?.get(chainId)?.get(amount.currency.address)
+
+//             if (!amount?.greaterThan(0n) || !_price) return 0
+//             const price = Number(
+//               Number(amount.toExact()) * Number(_price.toFixed(10)),
+//             )
+//             if (Number.isNaN(price) || price < 0.000001) {
+//               return 0
+//             }
+
+//             return price
+//           }
+
+//           const positionUSD =
+//             amountToUsd(position.amount0) + amountToUsd(position.amount1)
+//           const unclaimedUSD =
+//             amountToUsd(Amount.fromRawAmount(pool.token0, fees?.[0] || 0)) +
+//             amountToUsd(Amount.fromRawAmount(pool.token1, fees?.[1] || 0))
+
+//           return {
+//             ..._position,
+//             pool,
+//             position: {
+//               position,
+//               positionUSD,
+//               unclaimedUSD,
+//             },
+//           }
+//         })
+//         .filter(
+//           (position): position is useConcentratedLiquidityPositionsV4Data =>
+//             typeof position !== 'undefined',
+//         )
+//     },
+//     refetchInterval: Number.POSITIVE_INFINITY,
+//     enabled: Boolean(
+//       account && chainIds && enabled && (prices || isPriceError),
+//     ),
+//   })
+
+//   return {
+//     data: positions,
+//     isError: isPositionsError || isPriceError,
+//     isInitialLoading: isPositionsInitialLoading || isPriceInitialLoading,
+//   }
+// }

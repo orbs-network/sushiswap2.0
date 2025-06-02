@@ -13,10 +13,10 @@ import {
   getTokenWithCacheQueryFn,
   getTokenWithQueryCacheHydrate,
 } from '../../tokens/useTokenWithCache'
-import { getConcentratedLiquidityPositions } from '../actions/getConcentratedLiquidityPositions'
+import { getConcentratedLiquidityPositionsV3 } from '../actions/getConcentratedLiquidityPositionsV3'
 import type { ConcentratedLiquidityPositionV3 } from '../types'
 
-interface UseConcentratedLiquidityPositionsData
+interface useConcentratedLiquidityPositionsV3Data
   extends Omit<ConcentratedLiquidityPositionV3, 'token0' | 'token1'> {
   token0: Token
   token1: Token
@@ -28,7 +28,7 @@ interface UseConcentratedLiquidityPositionsData
   }
 }
 
-interface UseConcentratedLiquidityPositionsParams {
+interface useConcentratedLiquidityPositionsV3Params {
   account: Address | undefined
   chainIds: readonly SushiSwapV3ChainId[]
   enabled?: boolean
@@ -47,11 +47,11 @@ const getPoolKey = ({
 }) =>
   `${chainId}:${token0.address.toLowerCase()}:${token1.address.toLowerCase()}:${fee}`
 
-export const useConcentratedLiquidityPositions = ({
+export const useConcentratedLiquidityPositionsV3 = ({
   account,
   chainIds,
   enabled = true,
-}: UseConcentratedLiquidityPositionsParams) => {
+}: useConcentratedLiquidityPositionsV3Params) => {
   const { data: customTokens, hasToken } = useCustomTokens()
 
   const {
@@ -90,11 +90,11 @@ export const useConcentratedLiquidityPositions = ({
     isLoading: isPositionsInitialLoading,
   } = useQuery({
     queryKey: [
-      'useConcentratedLiquidityPositions',
+      'useConcentratedLiquidityPositionsV3',
       { chainIds, account, prices },
     ],
     queryFn: async () => {
-      const positions = await getConcentratedLiquidityPositions({
+      const positions = await getConcentratedLiquidityPositionsV3({
         account,
         chainIds,
         config,
@@ -218,7 +218,7 @@ export const useConcentratedLiquidityPositions = ({
           }
         })
         .filter(
-          (position): position is UseConcentratedLiquidityPositionsData =>
+          (position): position is useConcentratedLiquidityPositionsV3Data =>
             typeof position !== 'undefined',
         )
     },

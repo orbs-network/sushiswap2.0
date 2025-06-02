@@ -19,7 +19,7 @@ import React, {
   useMemo,
   useState,
 } from 'react'
-import { useConcentratedLiquidityPositions } from 'src/lib/wagmi/hooks/positions/hooks/useConcentratedLiquidityPositions'
+import { useConcentratedLiquidityPositionsV3 } from 'src/lib/wagmi/hooks/positions/hooks/useConcentratedLiquidityPositionsV3'
 import type { ConcentratedLiquidityPositionWithV3Pool } from 'src/lib/wagmi/hooks/positions/types'
 import { Checker } from 'src/lib/wagmi/systems/Checker'
 import { type EvmChainId, EvmChainKey } from 'sushi'
@@ -43,7 +43,7 @@ const COLUMNS = [
 
 const tableState = { sorting: [{ id: 'positionSize', desc: true }] }
 
-interface ConcentratedPositionsTableProps {
+interface ConcentratedPositionsTableV3Props {
   chainId: EvmChainId
   poolAddress?: string
   onRowClick?(row: ConcentratedLiquidityPositionWithV3Pool): void
@@ -53,8 +53,8 @@ interface ConcentratedPositionsTableProps {
   actions?: ReactNode
 }
 
-export const ConcentratedPositionsTable: FC<
-  ConcentratedPositionsTableProps
+export const ConcentratedPositionsTableV3: FC<
+  ConcentratedPositionsTableV3Props
 > = ({
   chainId,
   onRowClick,
@@ -77,7 +77,7 @@ export const ConcentratedPositionsTable: FC<
   })
 
   const { data: positions, isInitialLoading } =
-    useConcentratedLiquidityPositions({
+    useConcentratedLiquidityPositionsV3({
       account: address,
       chainIds,
     })

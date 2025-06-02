@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, SkeletonText } from '@sushiswap/ui'
 import { type FC, useMemo } from 'react'
 import { useClaimableRewards } from 'src/lib/hooks/react-query'
-import { useConcentratedLiquidityPositions } from 'src/lib/wagmi/hooks/positions/hooks/useConcentratedLiquidityPositions'
+import { useConcentratedLiquidityPositionsV3 } from 'src/lib/wagmi/hooks/positions/hooks/useConcentratedLiquidityPositionsV3'
 import { SushiSwapV3ChainIds } from 'sushi/config'
 import { formatUSD } from 'sushi/format'
 import { useAccount } from 'wagmi'
@@ -15,7 +15,7 @@ export const Hero: FC = () => {
     data: positionsData,
     isError: isPositionsError,
     isInitialLoading: isPositonsLoading,
-  } = useConcentratedLiquidityPositions({
+  } = useConcentratedLiquidityPositionsV3({
     account: address,
     chainIds: SushiSwapV3ChainIds,
   })

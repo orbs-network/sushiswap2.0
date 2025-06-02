@@ -2,7 +2,7 @@ import type { SushiSwapV3ChainId } from 'sushi/config'
 
 import type { PoolKey, SushiSwapV4ChainId } from 'src/lib/pool/v4'
 import type { Address } from 'viem'
-import type { useConcentratedLiquidityPositions } from './hooks/useConcentratedLiquidityPositions'
+import type { useConcentratedLiquidityPositionsV3 } from './hooks/useConcentratedLiquidityPositionsV3'
 
 export interface ConcentratedLiquidityPositionV3 {
   id: string
@@ -25,7 +25,7 @@ export interface ConcentratedLiquidityPositionV3 {
 }
 
 export type ConcentratedLiquidityPositionWithV3Pool = NonNullable<
-  ReturnType<typeof useConcentratedLiquidityPositions>['data']
+  ReturnType<typeof useConcentratedLiquidityPositionsV3>['data']
 >[number]
 
 export interface ConcentratedLiquidityPositionV4 {

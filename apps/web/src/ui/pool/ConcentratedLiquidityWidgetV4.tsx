@@ -102,7 +102,7 @@ const _ConcentratedLiquidityWidgetV4: FC<ConcentratedLiquidityWidgetV4> = ({
     account,
     currency0: token0,
     currency1: token1,
-    baseToken: token0,
+    baseCurrency: token0,
     feeAmount,
     tickSpacing,
     existingPosition,

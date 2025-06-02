@@ -53,7 +53,7 @@ const abiShard = [
   },
 ] as const
 
-export const getConcentratedLiquidityPositionsFromTokenIdsV4 = async ({
+export const getConcentratedLiquidityPositionsV3FromTokenIdsV4 = async ({
   tokenIds,
   config,
 }: {

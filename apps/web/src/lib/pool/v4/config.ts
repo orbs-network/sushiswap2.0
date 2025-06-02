@@ -21,6 +21,13 @@ export const SUSHISWAP_V4_CL_TICK_LENS: Record<SushiSwapV4ChainId, Address> = {
   [EvmChainId.POLYGON]: '0x1eE36631E086d80B7C907C30F40Ba8f79aB74E25',
 } as const
 
+export const SUSHISWAP_V4_CL_LP_FEES_HELPER: Record<
+  SushiSwapV4ChainId,
+  Address
+> = {
+  [EvmChainId.POLYGON]: '0xE62f3C29B75ab904960608Ae3c0FB5B3B3de6893',
+}
+
 export const SUSHISWAP_V4_SUPPORTED_CHAIN_IDS = [EvmChainId.POLYGON] as const
 
 export const SushiSwapV4ChainIds = SUSHISWAP_V4_SUPPORTED_CHAIN_IDS

@@ -3,7 +3,7 @@
 import type { V3Pool } from '@sushiswap/graph-client/data-api'
 import { Switch } from '@sushiswap/ui'
 import { useState } from 'react'
-import { ConcentratedPositionsTable } from 'src/ui/pool/ConcentratedPositionsTable'
+import { ConcentratedPositionsTableV3 } from 'src/ui/pool/ConcentratedPositionsTable'
 
 export function ManageV3PoolPositionsTable({
   pool,
@@ -12,7 +12,7 @@ export function ManageV3PoolPositionsTable({
 }) {
   const [hideClosed, setHideClosed] = useState(true)
   return (
-    <ConcentratedPositionsTable
+    <ConcentratedPositionsTableV3
       chainId={pool.chainId}
       poolAddress={pool.address}
       hideClosedPositions={hideClosed}
