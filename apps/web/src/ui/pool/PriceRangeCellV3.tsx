@@ -15,7 +15,7 @@ import { useIsTickAtLimit } from 'src/lib/pool/v3'
 import type { ConcentratedLiquidityPositionWithV3Pool } from 'src/lib/wagmi/hooks/positions/types'
 import { Position } from 'sushi/pool/sushiswap-v3'
 
-export const PriceRangeCell: FC<
+export const PriceRangeCellV3: FC<
   Row<ConcentratedLiquidityPositionWithV3Pool>
 > = ({ original }) => {
   const [manuallyInverted, setManuallyInverted] = useState(false)

@@ -29,16 +29,16 @@ import { ConcentratedLiquidityCollectAllDialog } from '../ConcentratedLiquidityC
 import { usePoolFilters } from '../PoolsFiltersProvider'
 import {
   NAME_COLUMN_V3,
-  POSITION_SIZE_CELL,
-  POSITION_UNCLAIMED_CELL,
-  PRICE_RANGE_COLUMN,
+  POSITION_SIZE_CELL_V3,
+  POSITION_UNCLAIMED_CELL_V3,
+  PRICE_RANGE_COLUMN_V3,
 } from '../columns'
 
 const COLUMNS = [
   NAME_COLUMN_V3,
-  PRICE_RANGE_COLUMN,
-  POSITION_SIZE_CELL,
-  POSITION_UNCLAIMED_CELL,
+  POSITION_SIZE_CELL_V3,
+  POSITION_UNCLAIMED_CELL_V3,
+  PRICE_RANGE_COLUMN_V3,
 ] satisfies ColumnDef<ConcentratedLiquidityPositionWithV3Pool, unknown>[]
 
 const tableState = { sorting: [{ id: 'positionSize', desc: true }] }

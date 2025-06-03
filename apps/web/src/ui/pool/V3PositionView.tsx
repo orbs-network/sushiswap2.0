@@ -40,7 +40,7 @@ import {
 } from 'src/lib/hooks/react-query'
 import { useConcentratedPositionInfo } from 'src/lib/wagmi/hooks/positions/hooks/useConcentratedPositionInfo'
 import { useConcentratedPositionOwnerV3 } from 'src/lib/wagmi/hooks/positions/hooks/useConcentratedPositionOwnerV3'
-import { useConcentratedLiquidityPositionsV3FromTokenIdV3 } from 'src/lib/wagmi/hooks/positions/hooks/useConcentratedPositionsFromTokenIdV3'
+import { useConcentratedLiquidityPositionsFromTokenIdV3 } from 'src/lib/wagmi/hooks/positions/hooks/useConcentratedPositionsFromTokenIdV3'
 import { useTokenWithCache } from 'src/lib/wagmi/hooks/tokens/useTokenWithCache'
 import { getDefaultTTL } from 'src/lib/wagmi/hooks/utils/hooks/useTransactionDeadline'
 import { Checker } from 'src/lib/wagmi/systems/Checker'
@@ -77,7 +77,7 @@ const Component: FC<{ chainId: string; address: string; position: string }> = ({
   const [invert, setInvert] = useState(false)
 
   const { data: positionDetails, isLoading: _isPositionDetailsLoading } =
-    useConcentratedLiquidityPositionsV3FromTokenIdV3({
+    useConcentratedLiquidityPositionsFromTokenIdV3({
       chainId,
       tokenId,
     })

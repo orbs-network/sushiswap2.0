@@ -16,7 +16,10 @@ import type { ColumnDef } from '@tanstack/react-table'
 import formatDistance from 'date-fns/formatDistance'
 import React, { useMemo } from 'react'
 import type { ClaimableRewards } from 'src/lib/hooks/react-query'
-import type { ConcentratedLiquidityPositionWithV3Pool } from 'src/lib/wagmi/hooks/positions/types'
+import type {
+  ConcentratedLiquidityPositionWithV3Pool,
+  ConcentratedLiquidityPositionWithV4Pool,
+} from 'src/lib/wagmi/hooks/positions/types'
 import type {
   MaybeNestedPool,
   PoolBase,
@@ -48,6 +51,7 @@ import { ClaimableRewardsChainCell } from './ClaimableRewardsChainCell'
 import { ConcentratedLiquidityPositionAPRCell } from './ConcentratedLiquidityPositionAPRCell'
 import { PoolNameCell, ProtocolBadge } from './PoolNameCell'
 import { PoolNameCellV3 } from './PoolNameCellV3'
+import { PoolNameCellV4 } from './PoolNameCellV4'
 import {
   type Transaction,
   TransactionType,
@@ -58,7 +62,8 @@ import {
   type TransactionV3,
   type useTransactionsV3,
 } from './PoolTransactionsV3'
-import { PriceRangeCell } from './PriceRangeCell'
+import { PriceRangeCellV3 } from './PriceRangeCellV3'
+import { PriceRangeCellV4 } from './PriceRangeCellV4'
 
 export const REWARDS_CHAIN_COLUMN: ColumnDef<ClaimableRewards, unknown> = {
   id: 'chain',
@@ -525,13 +530,13 @@ export const NAME_COLUMN_V3: ColumnDef<
   },
 }
 
-export const PRICE_RANGE_COLUMN: ColumnDef<
+export const PRICE_RANGE_COLUMN_V3: ColumnDef<
   ConcentratedLiquidityPositionWithV3Pool,
   unknown
 > = {
   id: 'priceRange',
   header: 'Price Range',
-  cell: (props) => <PriceRangeCell {...props.row} />,
+  cell: (props) => <PriceRangeCellV3 {...props.row} />,
   meta: {
     body: {
       skeleton: <SkeletonText fontSize="lg" />,
@@ -539,21 +544,7 @@ export const PRICE_RANGE_COLUMN: ColumnDef<
   },
 }
 
-export const CLIQ_APR_COLUMN: ColumnDef<
-  ConcentratedLiquidityPositionWithV3Pool,
-  unknown
-> = {
-  id: 'priceRange',
-  header: 'Price Range',
-  cell: (props) => <ConcentratedLiquidityPositionAPRCell {...props.row} />,
-  meta: {
-    body: {
-      skeleton: <SkeletonText fontSize="lg" />,
-    },
-  },
-}
-
-export const POSITION_SIZE_CELL: ColumnDef<
+export const POSITION_SIZE_CELL_V3: ColumnDef<
   ConcentratedLiquidityPositionWithV3Pool,
   unknown
 > = {
@@ -568,8 +559,76 @@ export const POSITION_SIZE_CELL: ColumnDef<
   },
 }
 
-export const POSITION_UNCLAIMED_CELL: ColumnDef<
+export const POSITION_UNCLAIMED_CELL_V3: ColumnDef<
   ConcentratedLiquidityPositionWithV3Pool,
+  unknown
+> = {
+  id: 'unclaimed',
+  accessorFn: (row) => +row.position.unclaimedUSD,
+  header: 'Unclaimed fees',
+  cell: (props) => formatUSD(props.row.original.position.unclaimedUSD),
+  meta: {
+    body: {
+      skeleton: <SkeletonText fontSize="lg" />,
+    },
+  },
+}
+
+export const NAME_COLUMN_V4: ColumnDef<
+  ConcentratedLiquidityPositionWithV4Pool,
+  unknown
+> = {
+  id: 'name',
+  header: 'Name',
+  cell: (props) => <PoolNameCellV4 {...props.row} />,
+  meta: {
+    body: {
+      skeleton: (
+        <div className="flex items-center w-full gap-2">
+          <div className="flex items-center">
+            <SkeletonCircle radius={26} />
+            <SkeletonCircle radius={26} className="-ml-[12px]" />
+          </div>
+          <div className="flex flex-col w-full">
+            <SkeletonText fontSize="lg" />
+          </div>
+        </div>
+      ),
+    },
+  },
+}
+
+export const PRICE_RANGE_COLUMN_V4: ColumnDef<
+  ConcentratedLiquidityPositionWithV4Pool,
+  unknown
+> = {
+  id: 'priceRange',
+  header: 'Price Range',
+  cell: (props) => <PriceRangeCellV4 {...props.row} />,
+  meta: {
+    body: {
+      skeleton: <SkeletonText fontSize="lg" />,
+    },
+  },
+}
+
+export const POSITION_SIZE_CELL_V4: ColumnDef<
+  ConcentratedLiquidityPositionWithV4Pool,
+  unknown
+> = {
+  id: 'positionSize',
+  accessorFn: (row) => +row.position.positionUSD,
+  header: 'Position Size',
+  cell: (props) => formatUSD(props.row.original.position.positionUSD),
+  meta: {
+    body: {
+      skeleton: <SkeletonText fontSize="lg" />,
+    },
+  },
+}
+
+export const POSITION_UNCLAIMED_CELL_V4: ColumnDef<
+  ConcentratedLiquidityPositionWithV4Pool,
   unknown
 > = {
   id: 'unclaimed',

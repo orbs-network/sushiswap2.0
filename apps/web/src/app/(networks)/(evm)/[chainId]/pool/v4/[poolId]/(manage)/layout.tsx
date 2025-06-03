@@ -1,4 +1,5 @@
 import { getV4Pool } from '@sushiswap/graph-client/v4'
+import { Container } from '@sushiswap/ui'
 import { unstable_cache } from 'next/cache'
 import { notFound } from 'next/navigation'
 import { isSushiSwapV4ChainId } from 'src/lib/pool/v4'
@@ -50,7 +51,9 @@ export default async function Layout(props: {
       </Container> */}
       <section className="flex flex-col flex-1 mt-4">
         <div className="bg-gray-50 dark:bg-white/[0.02] border-t border-accent py-10 h-full">
-          {children}
+          <Container maxWidth="5xl" className="px-4">
+            {children}
+          </Container>
         </div>
       </section>
     </>

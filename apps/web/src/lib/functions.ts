@@ -6,6 +6,7 @@ import {
   Native,
   Price,
   Token,
+  type Type,
   USDC,
   USDT,
   WBTC,
@@ -23,6 +24,7 @@ import {
 import { Bound } from './constants'
 import type { useTicks } from './hooks'
 import type { TickProcessed } from './pool/v3/use-concentrated-active-liquidity'
+import type { SushiSwapV4Position } from './pool/v4'
 
 export const isSushiSwapV2Pool = (
   pool: SushiSwapV2Pool | null,
@@ -112,12 +114,9 @@ export function tryParseTick(
   return nearestUsableTick(tick, TICK_SPACINGS[feeAmount])
 }
 
-export function getPriceOrderingFromPositionForUI(position?: Position): {
-  priceLower?: Price<Token, Token>
-  priceUpper?: Price<Token, Token>
-  quote?: Token
-  base?: Token
-} {
+export function getPriceOrderingFromPositionForUI(
+  position?: Position | SushiSwapV4Position,
+) {
   if (!position) {
     return {}
   }
@@ -230,7 +229,7 @@ export default function computeSurroundingTicks(
 }
 
 interface FormatTickPriceArgs {
-  price: Price<Token, Token> | undefined
+  price: Price<Type, Type> | undefined
   atLimit: { [_bound in Bound]?: boolean | undefined }
   direction: Bound
   placeholder?: string

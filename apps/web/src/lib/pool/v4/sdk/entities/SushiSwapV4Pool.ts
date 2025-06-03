@@ -11,14 +11,14 @@ import {
   TickMath,
 } from 'sushi/pool'
 import invariant from 'tiny-invariant'
-import { zeroAddress } from 'viem'
+import { type Hex, zeroAddress } from 'viem'
 import {
   SUSHISWAP_V4_CL_POOL_MANAGER,
   type SushiSwapV4ChainId,
 } from '../../config'
 import { Q192 } from '../constants/internalConstants'
 import type { HookData, PoolKey, PoolType } from '../types'
-import { sortCurrencies } from '../utils'
+import { getPoolId, getPoolKey, sortCurrencies } from '../utils'
 
 interface StepComputations {
   sqrtPriceStartX96: bigint
@@ -39,6 +39,10 @@ const NO_TICK_DATA_PROVIDER_DEFAULT = new NoTickDataProvider()
  * Represents a SushiSwapV4 pool
  */
 export class SushiSwapV4Pool {
+  public readonly id: Hex
+
+  public readonly poolKey: PoolKey
+
   public readonly currency0: Type
 
   public readonly currency1: Type
@@ -136,6 +140,14 @@ export class SushiSwapV4Pool {
     this.poolType = poolType
     this.dynamic = dynamic
     this.hooks = hooks
+    this.poolKey = getPoolKey({
+      chainId: this.chainId,
+      currency0: this.currency0,
+      currency1: this.currency1,
+      feeAmount: this.fee,
+      tickSpacing: this.tickSpacing,
+    })
+    this.id = getPoolId(this.poolKey)
   }
 
   /** backwards compatibility with v2/3 sdks */
@@ -216,8 +228,8 @@ export class SushiSwapV4Pool {
   /**
    * Returns the chain ID of the tokens in the pool.
    */
-  public get chainId(): number {
-    return this.currency0.chainId
+  public get chainId(): SushiSwapV4ChainId {
+    return this.currency0.chainId as SushiSwapV4ChainId
   }
 
   /**

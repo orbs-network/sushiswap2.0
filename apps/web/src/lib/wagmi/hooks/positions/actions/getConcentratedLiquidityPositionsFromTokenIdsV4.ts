@@ -6,6 +6,7 @@ import {
 import { decodePoolKey } from 'src/lib/pool/v4/sdk/utils/decodePoolKey'
 import type { PublicWagmiConfig } from '../../../config/public'
 import type { ConcentratedLiquidityPositionV4 } from '../types'
+import { getUnclaimedLPFeesV4 } from './getUnclaimedLPFeesV4'
 
 const abiShard = [
   {
@@ -53,7 +54,7 @@ const abiShard = [
   },
 ] as const
 
-export const getConcentratedLiquidityPositionsV3FromTokenIdsV4 = async ({
+export const getConcentratedLiquidityPositionsFromTokenIdsV4 = async ({
   tokenIds,
   config,
 }: {
@@ -70,7 +71,7 @@ export const getConcentratedLiquidityPositionsV3FromTokenIdsV4 = async ({
     })),
   })
 
-  return results
+  const positions = results
     .map((result, i) => {
       if (result.status !== 'success' || !result.result) return undefined
 
@@ -104,4 +105,16 @@ export const getConcentratedLiquidityPositionsV3FromTokenIdsV4 = async ({
       }
     })
     .filter((el): el is NonNullable<typeof el> => el !== undefined)
+
+  const unclaimedLPFees = await getUnclaimedLPFeesV4({
+    config,
+    positionData: positions,
+  })
+
+  return positions.map((position, i) => {
+    return {
+      ...position,
+      ...unclaimedLPFees[i],
+    }
+  })
 }
