@@ -78,8 +78,6 @@ export const ConcentratedPositionsTableV4: FC<
       chainIds,
     })
 
-  console.log('positions', positions)
-
   const _positions = useMemo(() => {
     const _tokenSymbols = tokenSymbols?.filter((el) => el !== '') || []
     return (positions || [])
@@ -147,7 +145,7 @@ export const ConcentratedPositionsTableV4: FC<
         testId="concentrated-positions"
         loading={isInitialLoading}
         linkFormatter={(row) =>
-          `/${EvmChainKey[row.chainId]}/pool/v4/${poolId}/${row.tokenId}`
+          `/${EvmChainKey[row.chainId]}/pool/v4/${row.pool.id}/${row.tokenId}`
         }
         rowRenderer={rowRenderer}
         columns={COLUMNS}

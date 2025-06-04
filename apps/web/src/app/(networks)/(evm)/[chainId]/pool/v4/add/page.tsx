@@ -44,7 +44,6 @@ const _Add: FC = () => {
     setToken1,
     setToken0,
     feeAmount,
-    tickSpacing,
     setFeeAmount,
     tokensLoading,
     tokenId,
