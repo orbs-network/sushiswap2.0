@@ -48,6 +48,7 @@ const Pool: FC<{ pool: V4Pool }> = ({ pool }) => {
 
   const { chainId } = pool
 
+  // TODO
   const { data: poolStats } = useConcentratedLiquidityPoolStats({
     chainId,
     address: undefined,

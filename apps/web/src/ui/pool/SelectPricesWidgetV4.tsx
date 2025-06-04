@@ -96,8 +96,6 @@ interface SelectPricesWidgetV4 {
   token0: Type | undefined
   token1: Type | undefined
   poolKey: PoolKey | undefined
-  feeAmount: number | undefined
-  tickSpacing: number | undefined
   switchTokens?(): void
   tokenId: string | undefined
   children?: ReactNode
@@ -109,8 +107,6 @@ export const SelectPricesWidgetV4: FC<SelectPricesWidgetV4> = ({
   token0: currency0,
   token1: currency1,
   poolKey,
-  feeAmount,
-  tickSpacing,
   switchTokens,
   tokenId,
   children,
@@ -186,7 +182,7 @@ export const SelectPricesWidgetV4: FC<SelectPricesWidgetV4> = ({
   } = useRangeHopCallbacks(
     currency0,
     currency1,
-    tickSpacing,
+    poolKey?.parameters.tickSpacing,
     tickLower,
     tickUpper,
     pool,
@@ -221,17 +217,11 @@ export const SelectPricesWidgetV4: FC<SelectPricesWidgetV4> = ({
 
   const setSingleSided = useCallback(
     (side: 'left' | 'right') => {
-      if (
-        !currency0 ||
-        !currency1 ||
-        !price ||
-        !feeAmount ||
-        !tickSpacing ||
-        !pool
-      )
-        return
+      if (!currency0 || !currency1 || !price || !poolKey || !pool) return
 
       getSetFullRange()
+
+      const tickSpacing = poolKey.parameters.tickSpacing
 
       switch (side) {
         case 'left': {
@@ -264,8 +254,7 @@ export const SelectPricesWidgetV4: FC<SelectPricesWidgetV4> = ({
       currency0,
       currency1,
       price,
-      feeAmount,
-      tickSpacing,
+      poolKey,
       pool,
       getSetFullRange,
       invertPrice,
@@ -615,7 +604,7 @@ export const SelectPricesWidgetV4: FC<SelectPricesWidgetV4> = ({
                 {PRICE_RANGE_OPTIONS.map(({ value, label, onClick }) => (
                   <RadioGroup.Option value={value} key={value}>
                     <Toggle
-                      disabled={!feeAmount}
+                      disabled={typeof poolKey?.fee === 'undefined'}
                       size="sm"
                       variant="outline"
                       className="whitespace-nowrap"

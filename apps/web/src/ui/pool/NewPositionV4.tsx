@@ -1,5 +1,6 @@
 'use client'
 
+import type { V4Pool } from '@sushiswap/graph-client/v4'
 import {
   Card,
   CardContent,
@@ -9,36 +10,44 @@ import {
   Separator,
 } from '@sushiswap/ui'
 import React, { type FC, useMemo, useState } from 'react'
-import { useConcentratedLiquidityPoolStats } from 'src/lib/hooks/react-query'
-import { type Address, ChainKey } from 'sushi'
-import type { SushiSwapV3ChainId } from 'sushi/config'
-import { unwrapToken } from 'sushi/currency'
+import type { PoolKey, SushiSwapV4ChainId } from 'src/lib/pool/v4'
+import { ChainKey } from 'sushi'
+import { Native, Token } from 'sushi/currency'
+import { type Hex, zeroAddress } from 'viem'
 import { useAccount } from 'wagmi'
-import { ConcentratedLiquidityWidgetV3 } from './ConcentratedLiquidityWidgetV3'
-import { SelectPricesWidgetV3 } from './SelectPricesWidgetV3'
+import { ConcentratedLiquidityWidgetV4 } from './ConcentratedLiquidityWidgetV4'
+import { SelectPricesWidgetV4 } from './SelectPricesWidgetV4'
 
 interface NewPositionProps {
-  address: Address
-  chainId: SushiSwapV3ChainId
+  id: Hex
+  chainId: SushiSwapV4ChainId
+  poolKey: PoolKey
+  currency0: V4Pool['token0']
+  currency1: V4Pool['token1']
 }
 
-export const NewPosition: FC<NewPositionProps> = ({ address, chainId }) => {
+export const NewPositionV4: FC<NewPositionProps> = ({
+  id,
+  poolKey,
+  chainId,
+  currency0,
+  currency1,
+}) => {
   const { address: account } = useAccount()
 
   const [invertTokens, setInvertTokens] = useState(false)
-
-  const { data: poolStats } = useConcentratedLiquidityPoolStats({
-    chainId,
-    address,
-  })
   const [_token0, _token1] = useMemo(() => {
     const tokens = [
-      poolStats?.token0 ? unwrapToken(poolStats.token0) : undefined,
-      poolStats?.token1 ? unwrapToken(poolStats.token1) : undefined,
+      currency0.address === zeroAddress
+        ? Native.onChain(currency0.chainId)
+        : new Token(currency0),
+      currency1.address === zeroAddress
+        ? Native.onChain(currency1.chainId)
+        : new Token(currency1),
     ]
 
     return invertTokens ? tokens.reverse() : tokens
-  }, [invertTokens, poolStats])
+  }, [invertTokens, currency0, currency1])
 
   return (
     <Card>
@@ -53,25 +62,25 @@ export const NewPosition: FC<NewPositionProps> = ({ address, chainId }) => {
       </div>
       <CardContent>
         <>
-          <SelectPricesWidgetV3
+          <SelectPricesWidgetV4
             chainId={chainId}
             token0={_token0}
             token1={_token1}
-            poolAddress={address}
-            feeAmount={poolStats?.feeAmount}
+            poolKey={poolKey}
             tokenId={undefined}
             switchTokens={() => setInvertTokens((prev) => !prev)}
           />
-          <ConcentratedLiquidityWidgetV3
+
+          <ConcentratedLiquidityWidgetV4
             chainId={chainId}
             account={account}
             token0={_token0}
             token1={_token1}
-            feeAmount={poolStats?.feeAmount}
+            poolKey={poolKey}
             tokensLoading={false}
             existingPosition={undefined}
             tokenId={undefined}
-            successLink={`/${ChainKey[chainId]}/pool/v3/${address}/positions`}
+            successLink={`/${ChainKey[chainId]}/pool/v4/${id}/positions`}
           />
         </>
       </CardContent>

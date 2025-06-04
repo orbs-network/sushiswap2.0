@@ -92,8 +92,6 @@ const _Add: FC = () => {
         token1={token1}
         poolKey={poolKey}
         tokenId={tokenId}
-        feeAmount={feeAmount}
-        tickSpacing={tickSpacing}
         switchTokens={switchTokens}
       />
       <ConcentratedLiquidityWidgetV4
