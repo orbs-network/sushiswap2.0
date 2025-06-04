@@ -10,16 +10,17 @@ import {
 } from '@sushiswap/ui'
 import { Button } from '@sushiswap/ui'
 import { type FC, useMemo, useState } from 'react'
-import type { ConcentratedLiquidityPositionV3 } from 'src/lib/wagmi/hooks/positions/types'
+import type { SushiSwapV4Position } from 'src/lib/pool/v4'
+import type { ConcentratedLiquidityPositionV4 } from 'src/lib/wagmi/hooks/positions/types'
 import { Checker } from 'src/lib/wagmi/systems/Checker'
-import type { Address, EvmChainId, Position } from 'sushi'
+import type { Address, EvmChainId } from 'sushi'
 import { Amount, Native, type Type, unwrapToken } from 'sushi/currency'
 import { formatUSD } from 'sushi/format'
-import { ConcentratedLiquidityCollectButton } from './ConcentratedLiquidityCollectButton'
+import { ConcentratedLiquidityCollectButtonV4 } from './ConcentratedLiquidityCollectButtonV4'
 
-interface ConcentratedLiquidityCollectWidget {
-  position: Position | undefined
-  positionDetails: ConcentratedLiquidityPositionV3 | undefined
+interface ConcentratedLiquidityCollectWidgetV4 {
+  position: SushiSwapV4Position | undefined
+  positionDetails: ConcentratedLiquidityPositionV4 | undefined
   token0: Type | undefined
   token1: Type | undefined
   chainId: EvmChainId
@@ -29,8 +30,8 @@ interface ConcentratedLiquidityCollectWidget {
   fiatValuesAmounts: number[]
 }
 
-export const ConcentratedLiquidityCollectWidget: FC<
-  ConcentratedLiquidityCollectWidget
+export const ConcentratedLiquidityCollectWidgetV4: FC<
+  ConcentratedLiquidityCollectWidgetV4
 > = ({
   position,
   positionDetails,
@@ -100,24 +101,37 @@ export const ConcentratedLiquidityCollectWidget: FC<
         ) : null}
       </CardContent>
       <CardFooter>
-        <ConcentratedLiquidityCollectButton
+        <ConcentratedLiquidityCollectButtonV4
           position={position ?? undefined}
           positionDetails={positionDetails}
           token0={expectedAmount0?.currency}
           token1={expectedAmount1?.currency}
           account={address}
           chainId={chainId}
+          receiveWrapped={receiveWrapped}
         >
           {({ send, isPending }) => (
             <Checker.Connect fullWidth>
               <Checker.Network fullWidth chainId={chainId}>
-                <Button fullWidth size="xl" disabled={isPending} onClick={send}>
-                  Collect
-                </Button>
+                {(positionDetails?.tokensOwed0 ?? 0n) === 0n &&
+                (positionDetails?.tokensOwed1 ?? 0n) === 0n ? (
+                  <Button fullWidth size="xl" disabled>
+                    No fees to claim
+                  </Button>
+                ) : (
+                  <Button
+                    fullWidth
+                    size="xl"
+                    disabled={isPending}
+                    onClick={send}
+                  >
+                    Collect
+                  </Button>
+                )}
               </Checker.Network>
             </Checker.Connect>
           )}
-        </ConcentratedLiquidityCollectButton>
+        </ConcentratedLiquidityCollectButtonV4>
       </CardFooter>
     </>
   )

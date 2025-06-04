@@ -5,9 +5,8 @@ import { type FC, use, useState } from 'react'
 import {
   SUSHISWAP_V4_SUPPORTED_CHAIN_IDS,
   type SushiSwapV4ChainId,
-  type SushiSwapV4Position,
 } from 'src/lib/pool/v4'
-import { useConcentratedPositionInfo } from 'src/lib/wagmi/hooks/positions/hooks/useConcentratedPositionInfo'
+import { useConcentratedPositionInfoV4 } from 'src/lib/wagmi/hooks/positions/hooks/useConcentratedPositionInfoV4'
 import { ConcentratedLiquidityProviderV4 } from 'src/ui/pool/ConcentratedLiquidityProviderV4'
 import {
   ConcentratedLiquidityURLStateProviderV4,
@@ -57,15 +56,13 @@ const _Add: FC = () => {
   const router = useRouter()
 
   const [_invert, _setInvert] = useState(false)
-  // TODO
-  const { data: _position } = useConcentratedPositionInfo({
+  const { data: position } = useConcentratedPositionInfoV4({
     chainId,
     token0,
     tokenId,
     token1,
     enabled: false,
   })
-  const position = _position as SushiSwapV4Position | undefined
 
   return (
     <>
@@ -107,8 +104,6 @@ const _Add: FC = () => {
         poolKey={poolKey}
         setToken0={setToken0}
         setToken1={setToken1}
-        feeAmount={feeAmount}
-        tickSpacing={tickSpacing}
         tokensLoading={tokensLoading}
         existingPosition={position ?? undefined}
         tokenId={tokenId}

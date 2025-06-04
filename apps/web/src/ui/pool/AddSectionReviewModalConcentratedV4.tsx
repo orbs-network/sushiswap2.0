@@ -78,8 +78,6 @@ interface AddSectionReviewModalConcentratedV4Props
     | 'ticks'
   > {
   chainId: SushiSwapV4ChainId
-  feeAmount: number | undefined
-  tickSpacing: number | undefined
   token0: Type | undefined
   token1: Type | undefined
   poolKey: PoolKey | undefined
@@ -96,7 +94,6 @@ export const AddSectionReviewModalConcentratedV4: FC<
   AddSectionReviewModalConcentratedV4Props
 > = ({
   chainId,
-  feeAmount,
   token0,
   token1,
   input0,
@@ -392,9 +389,9 @@ export const AddSectionReviewModalConcentratedV4: FC<
                     <List.KeyValue flex title="Network">
                       {EvmChain.from(chainId)?.name}
                     </List.KeyValue>
-                    {feeAmount && (
+                    {poolKey && (
                       <List.KeyValue title="Fee Tier">{`${
-                        +feeAmount / 10000
+                        +poolKey.fee / 10000
                       }%`}</List.KeyValue>
                     )}
                   </List.Control>

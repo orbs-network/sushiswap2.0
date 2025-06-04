@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { type FC, use, useMemo, useState } from 'react'
-import { useConcentratedPositionInfo } from 'src/lib/wagmi/hooks/positions/hooks/useConcentratedPositionInfo'
+import { useConcentratedPositionInfoV3 } from 'src/lib/wagmi/hooks/positions/hooks/useConcentratedPositionInfoV3'
 import { ConcentratedLiquidityProvider } from 'src/ui/pool/ConcentratedLiquidityProvider'
 import {
   ConcentratedLiquidityURLStateProvider,
@@ -53,7 +53,7 @@ const _Add: FC = () => {
   const router = useRouter()
 
   const [_invert, _setInvert] = useState(false)
-  const { data: position } = useConcentratedPositionInfo({
+  const { data: position } = useConcentratedPositionInfoV3({
     chainId,
     token0,
     tokenId,

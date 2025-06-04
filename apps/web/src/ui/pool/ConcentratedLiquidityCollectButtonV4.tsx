@@ -1,5 +1,6 @@
 'use client'
 
+import { TTLStorageKey } from '@sushiswap/hooks'
 import { createErrorToast, createToast } from '@sushiswap/notifications'
 import {
   LiquidityEventName,
@@ -7,21 +8,23 @@ import {
   sendAnalyticsEvent,
 } from '@sushiswap/telemetry'
 import { type FC, type ReactElement, useCallback, useMemo } from 'react'
-import type { ConcentratedLiquidityPositionV3 } from 'src/lib/wagmi/hooks/positions/types'
+import {
+  SUSHISWAP_V4_CL_POSITION_MANAGER,
+  type SushiSwapV4Position,
+  isSushiSwapV4ChainId,
+} from 'src/lib/pool/v4'
+import { encodeCLPositionManagerDecreaseLiquidityCalldata } from 'src/lib/pool/v4/sdk/functions/clamm/calldatas'
+import type { ConcentratedLiquidityPositionV4 } from 'src/lib/wagmi/hooks/positions/types'
+import { useTransactionDeadline } from 'src/lib/wagmi/hooks/utils/hooks/useTransactionDeadline'
 import type { EvmChainId } from 'sushi/chain'
-import {
-  SUSHISWAP_V3_POSITION_MANAGER,
-  isSushiSwapV3ChainId,
-} from 'sushi/config'
 import { Amount, type Type } from 'sushi/currency'
+import { NonfungiblePositionManager } from 'sushi/pool/sushiswap-v3'
 import {
-  NonfungiblePositionManager,
-  type Position,
-} from 'sushi/pool/sushiswap-v3'
-import {
+  type Address,
   type Hex,
   type SendTransactionReturnType,
   UserRejectedRequestError,
+  zeroAddress,
 } from 'viem'
 import {
   type UseCallParameters,
@@ -32,13 +35,14 @@ import {
 } from 'wagmi'
 import { useRefetchBalances } from '~evm/_common/ui/balance-provider/use-refetch-balances'
 
-interface ConcentratedLiquidityCollectButton {
-  positionDetails: ConcentratedLiquidityPositionV3 | undefined
-  position: Position | undefined
+interface ConcentratedLiquidityCollectButtonV4 {
+  positionDetails: ConcentratedLiquidityPositionV4 | undefined
+  position: SushiSwapV4Position | undefined
   token0: Type | undefined
   token1: Type | undefined
   account: `0x${string}` | undefined
   chainId: EvmChainId
+  receiveWrapped: boolean
   children(
     params: Omit<
       ReturnType<typeof useSendTransaction>,
@@ -47,8 +51,8 @@ interface ConcentratedLiquidityCollectButton {
   ): ReactElement<any>
 }
 
-export const ConcentratedLiquidityCollectButton: FC<
-  ConcentratedLiquidityCollectButton
+export const ConcentratedLiquidityCollectButtonV4: FC<
+  ConcentratedLiquidityCollectButtonV4
 > = ({
   account,
   chainId,
@@ -57,9 +61,15 @@ export const ConcentratedLiquidityCollectButton: FC<
   children,
   token0,
   token1,
+  receiveWrapped,
 }) => {
   const { chain } = useAccount()
   const client = usePublicClient()
+
+  const { data: deadline } = useTransactionDeadline({
+    storageKey: TTLStorageKey.RemoveLiquidity,
+    chainId,
+  })
 
   const { refetchChain: refetchBalances } = useRefetchBalances()
 
@@ -70,33 +80,60 @@ export const ConcentratedLiquidityCollectButton: FC<
       position &&
       account &&
       positionDetails &&
-      isSushiSwapV3ChainId(chainId)
+      isSushiSwapV4ChainId(chainId) &&
+      deadline
     ) {
-      const feeValue0 = positionDetails.fees
-        ? Amount.fromRawAmount(token0, positionDetails.fees[0])
-        : undefined
-      const feeValue1 = positionDetails.fees
-        ? Amount.fromRawAmount(token1, positionDetails.fees[1])
-        : undefined
+      let wrapAddress: Address = zeroAddress
+      if (receiveWrapped) {
+        if (position.pool.currency0.isNative)
+          wrapAddress = position.pool.currency0.wrapped.address
+        else if (position.pool.currency1.isNative)
+          wrapAddress = position.pool.currency1.wrapped.address
+      }
 
-      const { calldata, value } =
-        NonfungiblePositionManager.collectCallParameters({
-          tokenId: positionDetails.tokenId.toString(),
-          expectedCurrencyOwed0: feeValue0 ?? Amount.fromRawAmount(token0, 0),
-          expectedCurrencyOwed1: feeValue1 ?? Amount.fromRawAmount(token1, 0),
-          recipient: account,
-        })
+      const data = encodeCLPositionManagerDecreaseLiquidityCalldata({
+        tokenId: positionDetails.tokenId,
+        poolKey: positionDetails.poolKey,
+        liquidity: 0n,
+        amount0Min: 0n,
+        amount1Min: 0n,
+        wrapAddress: wrapAddress,
+        recipient: account,
+        hookData: undefined, // TODO
+        deadline,
+      })
+
+      //   const data = encodeCLPositionManagerDecreaseLiquidityCalldata({
+      //   tokenId: positionDetails.tokenId,
+      //   poolKey: positionDetails.poolKey,
+      //   liquidity: positionDetails.liquidity,
+      //   amount0Min,
+      //   amount1Min,
+      //   wrapAddress,
+      //   recipient: account,
+      //   hookData: undefined, // TODO
+      //   deadline: deadline,
+      // })
 
       return {
-        to: SUSHISWAP_V3_POSITION_MANAGER[chainId],
+        to: SUSHISWAP_V4_CL_POSITION_MANAGER[chainId],
         chainId,
-        data: calldata as Hex,
-        value: BigInt(value),
+        data,
+        value: 0n,
       } satisfies UseCallParameters
     }
 
     return undefined
-  }, [account, chainId, position, positionDetails, token0, token1])
+  }, [
+    account,
+    chainId,
+    position,
+    positionDetails,
+    token0,
+    token1,
+    receiveWrapped,
+    deadline,
+  ])
 
   const onSuccess = useCallback(
     (hash: SendTransactionReturnType) => {

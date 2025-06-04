@@ -7,7 +7,6 @@ import {
   CardContent,
   CardCurrencyAmountItem,
   CardDescription,
-  CardFooter,
   CardGroup,
   CardHeader,
   CardItem,
@@ -17,8 +16,6 @@ import {
   HoverCardContent,
   HoverCardTrigger,
   IconButton,
-  LinkExternal,
-  LinkInternal,
   Separator,
   SettingsModule,
   SettingsOverlay,
@@ -30,25 +27,17 @@ import {
   WidgetAction,
   classNames,
 } from '@sushiswap/ui'
-import { Button } from '@sushiswap/ui'
 import { FormattedNumber } from '@sushiswap/ui'
 import { SkeletonText } from '@sushiswap/ui'
 import { type FC, useMemo, useState } from 'react'
-import {
-  useClaimableRewards,
-  useRewardCampaigns,
-} from 'src/lib/hooks/react-query'
-import { useConcentratedPositionInfoV3 } from 'src/lib/wagmi/hooks/positions/hooks/useConcentratedPositionInfoV3'
-import { useConcentratedPositionOwnerV3 } from 'src/lib/wagmi/hooks/positions/hooks/useConcentratedPositionOwnerV3'
-import { useConcentratedLiquidityPositionsFromTokenIdV3 } from 'src/lib/wagmi/hooks/positions/hooks/useConcentratedPositionsFromTokenIdV3'
+import type { SushiSwapV4ChainId } from 'src/lib/pool/v4'
+import { useConcentratedPositionInfoV4 } from 'src/lib/wagmi/hooks/positions/hooks/useConcentratedPositionInfoV4'
+import { useConcentratedLiquidityPositionsFromTokenIdV4 } from 'src/lib/wagmi/hooks/positions/hooks/useConcentratedPositionsFromTokenIdV4'
 import { useTokenWithCache } from 'src/lib/wagmi/hooks/tokens/useTokenWithCache'
 import { getDefaultTTL } from 'src/lib/wagmi/hooks/utils/hooks/useTransactionDeadline'
-import { Checker } from 'src/lib/wagmi/systems/Checker'
-import { EvmChain, EvmChainKey } from 'sushi/chain'
-import { type SushiSwapV3ChainId, isMerklChainId } from 'sushi/config'
-import { Amount, unwrapToken } from 'sushi/currency'
+import { Amount, Native, unwrapToken } from 'sushi/currency'
 import { formatPercent, formatUSD } from 'sushi/format'
-import type { Address } from 'sushi/types'
+import { zeroAddress } from 'viem'
 import { useAccount } from 'wagmi'
 import { Bound } from '../../lib/constants'
 import {
@@ -56,69 +45,85 @@ import {
   getPriceOrderingFromPositionForUI,
 } from '../../lib/functions'
 import { usePriceInverter, useTokenAmountDollarValues } from '../../lib/hooks'
-import { useIsTickAtLimit } from '../../lib/pool/v3'
-import { ClaimRewardsButton } from './ClaimRewardsButton'
-import { ConcentratedLiquidityCollectWidgetV3 } from './ConcentratedLiquidityCollectWidgetV3'
+import { useIsTickAtLimit } from '../../lib/pool/v4'
+import { ConcentratedLiquidityCollectWidgetV4 } from './ConcentratedLiquidityCollectWidgetV4'
 import {
-  ConcentratedLiquidityProvider,
-  useConcentratedDerivedMintInfo,
-} from './ConcentratedLiquidityProvider'
-import { ConcentratedLiquidityRemoveWidgetV3 } from './ConcentratedLiquidityRemoveWidgetV3'
-import { ConcentratedLiquidityWidgetV3 } from './ConcentratedLiquidityWidgetV3'
-import { DistributionDataTable } from './DistributionDataTable'
+  ConcentratedLiquidityProviderV4,
+  useConcentratedDerivedMintInfoV4,
+} from './ConcentratedLiquidityProviderV4'
+import { ConcentratedLiquidityRemoveWidgetV4 } from './ConcentratedLiquidityRemoveWidgetV4'
+import { ConcentratedLiquidityWidgetV4 } from './ConcentratedLiquidityWidgetV4'
 
-const Component: FC<{ chainId: string; address: string; position: string }> = ({
+const Component: FC<{ chainId: string; id: string; position: string }> = ({
   chainId: _chainId,
-  address: poolAddress,
   position: tokenId,
 }) => {
   const { address } = useAccount()
-  const chainId = Number(_chainId) as SushiSwapV3ChainId
+  const chainId = Number(_chainId) as SushiSwapV4ChainId
   const [invert, setInvert] = useState(false)
 
   const { data: positionDetails, isLoading: _isPositionDetailsLoading } =
-    useConcentratedLiquidityPositionsFromTokenIdV3({
+    useConcentratedLiquidityPositionsFromTokenIdV4({
       chainId,
       tokenId,
     })
 
-  const { data: token0, isLoading: token0Loading } = useTokenWithCache({
+  const { data: _token0, isLoading: _isToken0Loading } = useTokenWithCache({
     chainId,
-    address: positionDetails?.token0,
+    address: positionDetails?.currency0,
+    enabled: positionDetails?.currency0 !== zeroAddress,
   })
-  const { data: token1, isLoading: token1Loading } = useTokenWithCache({
+  const { data: _token1, isLoading: _isToken1Loading } = useTokenWithCache({
     chainId,
-    address: positionDetails?.token1,
+    address: positionDetails?.currency1,
+    enabled: positionDetails?.currency1 !== zeroAddress,
   })
 
+  const currency0 = useMemo(() => {
+    return positionDetails?.currency0 === zeroAddress
+      ? Native.onChain(chainId)
+      : _token0
+  }, [chainId, positionDetails?.currency0, _token0])
+
+  const currency1 = useMemo(() => {
+    return positionDetails?.currency1 === zeroAddress
+      ? Native.onChain(chainId)
+      : _token1
+  }, [chainId, positionDetails?.currency1, _token1])
+
+  const isCurrency0Loading =
+    positionDetails?.currency0 !== zeroAddress && _isToken0Loading
+  const isCurrency1Loading =
+    positionDetails?.currency1 !== zeroAddress && _isToken1Loading
+
   const { data: position, isInitialLoading: isPositionLoading } =
-    useConcentratedPositionInfoV3({
+    useConcentratedPositionInfoV4({
       chainId,
-      token0,
+      token0: currency0,
+      token1: currency1,
       tokenId,
-      token1,
     })
 
   const pricesFromPosition = position
     ? getPriceOrderingFromPositionForUI(position)
     : undefined
 
-  const { pool, outOfRange } = useConcentratedDerivedMintInfo({
+  const { pool, outOfRange } = useConcentratedDerivedMintInfoV4({
     chainId,
     account: address,
-    token0,
-    token1,
-    baseToken: token0,
-    feeAmount: positionDetails?.fee,
+    currency0,
+    currency1,
+    baseCurrency: currency0,
+    poolKey: positionDetails?.poolKey,
     existingPosition: position ?? undefined,
   })
 
-  const [_token0, _token1] = useMemo(
+  const [_currency0, _currency1] = useMemo(
     () => [
-      token0 ? unwrapToken(token0) : undefined,
-      token1 ? unwrapToken(token1) : undefined,
+      currency0 ? unwrapToken(currency0) : undefined,
+      currency1 ? unwrapToken(currency1) : undefined,
     ],
-    [token0, token1],
+    [currency0, currency1],
   )
 
   const amounts = useMemo(() => {
@@ -140,14 +145,14 @@ const Component: FC<{ chainId: string; address: string; position: string }> = ({
   })
 
   const tickAtLimit = useIsTickAtLimit(
-    positionDetails?.fee,
+    positionDetails?.poolKey.parameters.tickSpacing,
     position?.tickLower,
     position?.tickUpper,
   )
 
-  const inverted = token1 ? base?.equals(token1) : undefined
-  const currencyQuote = inverted ? token0 : token1
-  const currencyBase = inverted ? token1 : token0
+  const inverted = currency1 ? base?.equals(currency1) : undefined
+  const currencyQuote = inverted ? currency0 : currency1
+  const currencyBase = inverted ? currency1 : currency0
   const below =
     pool && position && true ? pool.tickCurrent < position.tickLower : undefined
   const above =
@@ -162,32 +167,33 @@ const Component: FC<{ chainId: string; address: string; position: string }> = ({
     tickAtLimit[Bound.LOWER] && tickAtLimit[Bound.UPPER],
   )
 
-  const { data: owner } = useConcentratedPositionOwnerV3({ chainId, tokenId })
+  // const { data: owner } = useConcentratedPositionOwnerV3({ chainId, tokenId })
 
-  const { data: rewardsData, isLoading: isRewardsLoading } =
-    useClaimableRewards({
-      chainIds: isMerklChainId(chainId) ? [chainId] : [],
-      account: owner,
-      enabled: isMerklChainId(chainId),
-    })
-  const { data: campaignsData, isLoading: isCampaignsLoading } =
-    useRewardCampaigns({
-      pool: poolAddress as Address,
-      chainId,
-      enabled: isMerklChainId(chainId),
-    })
+  // const { data: rewardsData, isLoading: isRewardsLoading } =
+  //   useClaimableRewards({
+  //     chainIds: isMerklChainId(chainId) ? [chainId] : [],
+  //     account: owner,
+  //     enabled: isMerklChainId(chainId),
+  //   })
+  // const { data: campaignsData, isLoading: isCampaignsLoading } =
+  //   useRewardCampaigns({
+  //     // pool: pooAlAddress as Address,
+  //     pool: undefined,
+  //     chainId,
+  //     enabled: isMerklChainId(chainId),
+  //   })
 
-  const [activeCampaigns, inactiveCampaigns] = useMemo(() => {
-    const activeCampaigns: typeof campaignsData = []
-    const inactiveCampaigns: typeof campaignsData = []
+  // const [activeCampaigns, inactiveCampaigns] = useMemo(() => {
+  //   const activeCampaigns: typeof campaignsData = []
+  //   const inactiveCampaigns: typeof campaignsData = []
 
-    campaignsData?.forEach((campaign) => {
-      if (campaign.isLive) activeCampaigns.push(campaign)
-      else inactiveCampaigns.push(campaign)
-    })
+  //   campaignsData?.forEach((campaign) => {
+  //     if (campaign.isLive) activeCampaigns.push(campaign)
+  //     else inactiveCampaigns.push(campaign)
+  //   })
 
-    return [activeCampaigns, inactiveCampaigns]
-  }, [campaignsData])
+  //   return [activeCampaigns, inactiveCampaigns]
+  // }, [campaignsData])
 
   const fiatValuesAmounts = useTokenAmountDollarValues({ chainId, amounts })
   const positionAmounts = useMemo(
@@ -235,7 +241,7 @@ const Component: FC<{ chainId: string; address: string; position: string }> = ({
                     >
                       Fees
                     </TabsTrigger>
-                    {isMerklChainId(chainId) ? (
+                    {/* {isMerklChainId(chainId) ? (
                       <TabsTrigger
                         testdata-id="rewards-tab"
                         value="rewards"
@@ -243,7 +249,7 @@ const Component: FC<{ chainId: string; address: string; position: string }> = ({
                       >
                         Rewards
                       </TabsTrigger>
-                    ) : null}
+                    ) : null} */}
                   </TabsList>
                 </CardContent>
                 <div className="px-6">
@@ -284,14 +290,14 @@ const Component: FC<{ chainId: string; address: string; position: string }> = ({
                         </SettingsOverlay>
                       </WidgetAction>
                     </CardHeader>
-                    <ConcentratedLiquidityWidgetV3
+                    <ConcentratedLiquidityWidgetV4
                       withTitleAndDescription={false}
                       chainId={chainId}
                       account={address}
-                      token0={_token0}
-                      token1={_token1}
-                      feeAmount={positionDetails?.fee}
-                      tokensLoading={token0Loading || token1Loading}
+                      token0={_currency0}
+                      token1={_currency1}
+                      poolKey={positionDetails?.poolKey}
+                      tokensLoading={isCurrency0Loading || isCurrency1Loading}
                       existingPosition={position ?? undefined}
                       tokenId={tokenId}
                     />
@@ -304,9 +310,9 @@ const Component: FC<{ chainId: string; address: string; position: string }> = ({
                       Please enter how much of the position you want to remove.
                     </CardDescription>
                   </CardHeader>
-                  <ConcentratedLiquidityRemoveWidgetV3
-                    token0={_token0}
-                    token1={_token1}
+                  <ConcentratedLiquidityRemoveWidgetV4
+                    token0={_currency0}
+                    token1={_currency1}
                     account={address}
                     chainId={chainId}
                     position={position ?? undefined}
@@ -320,11 +326,11 @@ const Component: FC<{ chainId: string; address: string; position: string }> = ({
                       {formatUSD(fiatValuesAmounts[0] + fiatValuesAmounts[1])}
                     </CardDescription>
                   </CardHeader>
-                  <ConcentratedLiquidityCollectWidgetV3
+                  <ConcentratedLiquidityCollectWidgetV4
                     position={position ?? undefined}
                     positionDetails={positionDetails}
-                    token0={token0}
-                    token1={token1}
+                    token0={_currency0}
+                    token1={_currency1}
                     chainId={chainId}
                     isLoading={isPositionLoading}
                     address={address}
@@ -332,7 +338,7 @@ const Component: FC<{ chainId: string; address: string; position: string }> = ({
                     fiatValuesAmounts={fiatValuesAmounts}
                   />
                 </TabsContent>
-                {isMerklChainId(chainId) ? (
+                {/* {isMerklChainId(chainId) ? (
                   <TabsContent value="rewards">
                     <CardHeader>
                       <CardTitle>Unclaimed rewards</CardTitle>
@@ -390,7 +396,7 @@ const Component: FC<{ chainId: string; address: string; position: string }> = ({
                       )}
                     </CardFooter>
                   </TabsContent>
-                ) : null}
+                ) : null} */}
               </Tabs>
             </Card>
           </div>
@@ -651,7 +657,7 @@ const Component: FC<{ chainId: string; address: string; position: string }> = ({
             </Card>
           </div>
         </div>
-        {isMerklChainId(chainId) ? (
+        {/* {isMerklChainId(chainId) ? (
           <>
             <div className="py-4">
               <Separator />
@@ -704,18 +710,18 @@ const Component: FC<{ chainId: string; address: string; position: string }> = ({
               </Tabs>
             </Card>
           </>
-        ) : null}
+        ) : null} */}
       </div>
     </>
   )
 }
 
-export const V3PositionView = ({
-  params: { chainId, address, position },
-}: { params: { chainId: string; address: string; position: string } }) => {
+export const V4PositionView = ({
+  params: { chainId, id, position },
+}: { params: { chainId: string; id: string; position: string } }) => {
   return (
-    <ConcentratedLiquidityProvider>
-      <Component chainId={chainId} address={address} position={position} />
-    </ConcentratedLiquidityProvider>
+    <ConcentratedLiquidityProviderV4>
+      <Component chainId={chainId} id={id} position={position} />
+    </ConcentratedLiquidityProviderV4>
   )
 }

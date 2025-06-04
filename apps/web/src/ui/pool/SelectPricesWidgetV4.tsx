@@ -144,8 +144,6 @@ export const SelectPricesWidgetV4: FC<SelectPricesWidgetV4> = ({
     currency0,
     currency1,
     baseCurrency: currency0,
-    feeAmount,
-    tickSpacing,
     existingPosition: undefined,
     poolKey,
   })

@@ -43,8 +43,6 @@ export const LiquidityDepthWidgetV4: FC<LiquidityDepthWidgetV4> = ({
     currency0,
     currency1,
     baseCurrency: currency0,
-    feeAmount: poolKey.fee,
-    tickSpacing: poolKey.parameters.tickSpacing,
     existingPosition: undefined,
   })
 

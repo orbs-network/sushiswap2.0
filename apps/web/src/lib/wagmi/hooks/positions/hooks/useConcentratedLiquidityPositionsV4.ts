@@ -190,8 +190,6 @@ export const useConcentratedLiquidityPositionsV4 = ({
           .map((pool) => [pool.id, pool]),
       )
 
-      console.log('pools', pools)
-
       return positionsWithTokens
         .map((_position) => {
           const { chainId, liquidity, tickLower, tickUpper, poolKey, fees } =

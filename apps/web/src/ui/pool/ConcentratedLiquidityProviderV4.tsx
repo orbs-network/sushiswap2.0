@@ -225,8 +225,6 @@ export function useConcentratedDerivedMintInfoV4({
   baseCurrency,
   chainId,
   poolKey,
-  feeAmount,
-  tickSpacing,
   existingPosition,
 }: {
   account: string | undefined
@@ -235,8 +233,6 @@ export function useConcentratedDerivedMintInfoV4({
   baseCurrency: Type | undefined
   poolKey: PoolKey | undefined
   chainId: SushiSwapV4ChainId
-  feeAmount: number | undefined
-  tickSpacing: number | undefined
   existingPosition?: SushiSwapV4Position
 }): {
   pool?: SushiSwapV4Pool | null
@@ -367,29 +363,22 @@ export function useConcentratedDerivedMintInfoV4({
 
   // used for ratio calculation when pool not initialized
   const mockPool = useMemo(() => {
-    if (
-      currencyA &&
-      currencyB &&
-      feeAmount &&
-      tickSpacing &&
-      price &&
-      !invalidPrice
-    ) {
+    if (poolKey && currencyA && currencyB && price && !invalidPrice) {
       const currentTick = priceToClosestTick(price)
       const currentSqrt = TickMath.getSqrtRatioAtTick(currentTick)
       return new SushiSwapV4Pool({
         currencyA,
         currencyB,
-        fee: feeAmount,
+        fee: poolKey.fee,
         sqrtRatioX96: currentSqrt,
         liquidity: 0n,
         tickCurrent: currentTick,
-        tickSpacing,
+        tickSpacing: poolKey.parameters.tickSpacing,
       })
     } else {
       return undefined
     }
-  }, [feeAmount, tickSpacing, invalidPrice, price, currencyA, currencyB])
+  }, [poolKey, invalidPrice, price, currencyA, currencyB])
 
   // if pool exists use it, if not use the mock pool
   const poolForPosition: SushiSwapV4Pool | undefined = pool ?? mockPool
@@ -397,14 +386,14 @@ export function useConcentratedDerivedMintInfoV4({
   // lower and upper limits in the tick space for `feeAmoun<Trans>
   const tickSpaceLimits = useMemo(
     () => ({
-      [Bound.LOWER]: tickSpacing
-        ? nearestUsableTick(TickMath.MIN_TICK, tickSpacing)
+      [Bound.LOWER]: poolKey
+        ? nearestUsableTick(TickMath.MIN_TICK, poolKey.parameters.tickSpacing)
         : undefined,
-      [Bound.UPPER]: tickSpacing
-        ? nearestUsableTick(TickMath.MAX_TICK, tickSpacing)
+      [Bound.UPPER]: poolKey
+        ? nearestUsableTick(TickMath.MAX_TICK, poolKey.parameters.tickSpacing)
         : undefined,
     }),
-    [tickSpacing],
+    [poolKey],
   )
 
   const [leftBoundInput, rightBoundInput] = useMemo((): [
@@ -457,15 +446,15 @@ export function useConcentratedDerivedMintInfoV4({
               ? tryParseTick(
                   currency1,
                   currency0,
-                  feeAmount,
-                  tickSpacing,
+                  poolKey?.fee,
+                  poolKey?.parameters?.tickSpacing,
                   rightBoundInput.toString(),
                 )
               : tryParseTick(
                   currency0,
                   currency1,
-                  feeAmount,
-                  tickSpacing,
+                  poolKey?.fee,
+                  poolKey?.parameters?.tickSpacing,
                   leftBoundInput.toString(),
                 ),
       [Bound.UPPER]:
@@ -478,22 +467,21 @@ export function useConcentratedDerivedMintInfoV4({
               ? tryParseTick(
                   currency1,
                   currency0,
-                  feeAmount,
-                  tickSpacing,
+                  poolKey?.fee,
+                  poolKey?.parameters?.tickSpacing,
                   leftBoundInput.toString(),
                 )
               : tryParseTick(
                   currency0,
                   currency1,
-                  feeAmount,
-                  tickSpacing,
+                  poolKey?.fee,
+                  poolKey?.parameters?.tickSpacing,
                   rightBoundInput.toString(),
                 ),
     }
   }, [
     existingPosition,
-    feeAmount,
-    tickSpacing,
+    poolKey,
     invertPrice,
     leftBoundInput,
     rightBoundInput,
@@ -508,11 +496,13 @@ export function useConcentratedDerivedMintInfoV4({
   const ticksAtLimit = useMemo(
     () => ({
       [Bound.LOWER]:
-        typeof feeAmount !== 'undefined' && tickLower === tickSpaceLimits.LOWER,
+        typeof poolKey?.fee !== 'undefined' &&
+        tickLower === tickSpaceLimits.LOWER,
       [Bound.UPPER]:
-        typeof feeAmount !== 'undefined' && tickUpper === tickSpaceLimits.UPPER,
+        typeof poolKey?.fee !== 'undefined' &&
+        tickUpper === tickSpaceLimits.UPPER,
     }),
-    [tickSpaceLimits, tickLower, tickUpper, feeAmount],
+    [tickSpaceLimits, tickLower, tickUpper, poolKey?.fee],
   )
 
   // mark invalid range

@@ -1,5 +1,4 @@
 import { getV4Pool } from '@sushiswap/graph-client/v4'
-import { Container } from '@sushiswap/ui'
 import { unstable_cache } from 'next/cache'
 import { notFound } from 'next/navigation'
 import { isSushiSwapV4ChainId } from 'src/lib/pool/v4'
@@ -8,21 +7,21 @@ import { isHex } from 'viem'
 
 export default async function Layout(props: {
   children: React.ReactNode
-  params: Promise<{ chainId: string; poolId: string }>
+  params: Promise<{ chainId: string; id: string }>
 }) {
   const params = await props.params
 
   const { children } = props
-  const { chainId: _chainId, poolId } = params
+  const { chainId: _chainId, id } = params
   const chainId = +_chainId as EvmChainId
 
-  if (!isSushiSwapV4ChainId(chainId) || !isHex(poolId, { strict: false })) {
+  if (!isSushiSwapV4ChainId(chainId) || !isHex(id, { strict: false })) {
     return {}
   }
 
   const pool = await unstable_cache(
-    async () => getV4Pool({ id: poolId }),
-    ['v4', 'pool', `${chainId}:${poolId}`],
+    async () => getV4Pool({ id }),
+    ['v4', 'pool', `${chainId}:${id}`],
     {
       revalidate: 60 * 15,
     },
@@ -51,9 +50,7 @@ export default async function Layout(props: {
       </Container> */}
       <section className="flex flex-col flex-1 mt-4">
         <div className="bg-gray-50 dark:bg-white/[0.02] border-t border-accent py-10 h-full">
-          <Container maxWidth="5xl" className="px-4">
-            {children}
-          </Container>
+          {children}
         </div>
       </section>
     </>

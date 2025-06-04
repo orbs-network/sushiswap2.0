@@ -16,7 +16,7 @@ interface useConcentratedLiquidityPositionsFromTokenIdV3Params {
   enabled?: boolean
 }
 
-export const useConcentratedPositionInfo = ({
+export const useConcentratedPositionInfoV3 = ({
   token0,
   token1,
   tokenId,
@@ -33,7 +33,7 @@ export const useConcentratedPositionInfo = ({
 
   return useQuery({
     queryKey: [
-      'useConcentratedPositionInfo',
+      'useConcentratedPositionInfoV3',
       { chainId, token0, token1, tokenId, positionDetails },
     ],
     queryFn: async () => {

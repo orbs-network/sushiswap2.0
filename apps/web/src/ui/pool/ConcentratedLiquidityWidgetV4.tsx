@@ -33,8 +33,6 @@ interface ConcentratedLiquidityWidgetV4 {
   token0: Type | undefined
   token1: Type | undefined
   poolKey: PoolKey | undefined
-  feeAmount: number | undefined
-  tickSpacing: number | undefined
   setToken0?(token: Type): void
   setToken1?(token: Type): void
   tokensLoading: boolean
@@ -58,8 +56,6 @@ export const ConcentratedLiquidityWidgetV4: FC<
 const _ConcentratedLiquidityWidgetV4: FC<ConcentratedLiquidityWidgetV4> = ({
   chainId,
   account,
-  feeAmount,
-  tickSpacing,
   token0,
   token1,
   poolKey,
@@ -103,8 +99,6 @@ const _ConcentratedLiquidityWidgetV4: FC<ConcentratedLiquidityWidgetV4> = ({
     currency0: token0,
     currency1: token1,
     baseCurrency: token0,
-    feeAmount,
-    tickSpacing,
     existingPosition,
     poolKey,
   })
@@ -303,8 +297,6 @@ const _ConcentratedLiquidityWidgetV4: FC<ConcentratedLiquidityWidgetV4> = ({
                   >
                     <AddSectionReviewModalConcentratedV4
                       chainId={chainId}
-                      feeAmount={feeAmount}
-                      tickSpacing={tickSpacing}
                       token0={token0}
                       token1={token1}
                       poolKey={poolKey}

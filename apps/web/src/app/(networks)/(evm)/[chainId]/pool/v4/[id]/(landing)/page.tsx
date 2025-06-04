@@ -7,19 +7,19 @@ import type { EvmChainId } from 'sushi'
 import { isHex } from 'viem'
 
 export default async function PoolPage(props: {
-  params: Promise<{ chainId: string; poolId: string }>
+  params: Promise<{ chainId: string; id: string }>
 }) {
   const params = await props.params
-  const { chainId: _chainId, poolId } = params
+  const { chainId: _chainId, id } = params
   const chainId = +_chainId as EvmChainId
 
-  if (!isSushiSwapV4ChainId(chainId) || !isHex(poolId, { strict: false })) {
+  if (!isSushiSwapV4ChainId(chainId) || !isHex(id, { strict: false })) {
     return {}
   }
 
   const pool = await unstable_cache(
-    async () => getV4Pool({ id: poolId }),
-    ['v4', 'pool', `${chainId}:${poolId}`],
+    async () => getV4Pool({ id }),
+    ['v4', 'pool', `${chainId}:${id}`],
     {
       revalidate: 60 * 15,
     },
