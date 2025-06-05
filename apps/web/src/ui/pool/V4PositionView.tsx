@@ -127,14 +127,13 @@ const Component: FC<{ chainId: string; id: string; position: string }> = ({
   )
 
   const amounts = useMemo(() => {
-    if (positionDetails?.fees && _token0 && _token1)
+    if (positionDetails?.fees && _currency0 && _currency1)
       return [
-        Amount.fromRawAmount(_token0, BigInt(positionDetails.fees[0])),
-        Amount.fromRawAmount(_token1, BigInt(positionDetails.fees[1])),
+        Amount.fromRawAmount(_currency0, BigInt(positionDetails.fees[0])),
+        Amount.fromRawAmount(_currency1, BigInt(positionDetails.fees[1])),
       ]
-
     return [undefined, undefined]
-  }, [_token0, _token1, positionDetails])
+  }, [_currency0, _currency1, positionDetails])
 
   const { priceLower, priceUpper, base } = usePriceInverter({
     priceLower: pricesFromPosition?.priceLower,
@@ -472,7 +471,7 @@ const Component: FC<{ chainId: string; id: string; position: string }> = ({
                           size="xs"
                           variant="outline"
                         >
-                          {_token0?.symbol}
+                          {_currency0?.symbol}
                         </Toggle>
                         <Toggle
                           pressed={!invert}
@@ -480,7 +479,7 @@ const Component: FC<{ chainId: string; id: string; position: string }> = ({
                           size="xs"
                           variant="outline"
                         >
-                          {_token1?.symbol}
+                          {_currency1?.symbol}
                         </Toggle>
                       </div>
                     </CardItem>

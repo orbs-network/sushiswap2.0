@@ -103,18 +103,6 @@ export const ConcentratedLiquidityCollectButtonV4: FC<
         deadline,
       })
 
-      //   const data = encodeCLPositionManagerDecreaseLiquidityCalldata({
-      //   tokenId: positionDetails.tokenId,
-      //   poolKey: positionDetails.poolKey,
-      //   liquidity: positionDetails.liquidity,
-      //   amount0Min,
-      //   amount1Min,
-      //   wrapAddress,
-      //   recipient: account,
-      //   hookData: undefined, // TODO
-      //   deadline: deadline,
-      // })
-
       return {
         to: SUSHISWAP_V4_CL_POSITION_MANAGER[chainId],
         chainId,

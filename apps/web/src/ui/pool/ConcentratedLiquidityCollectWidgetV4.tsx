@@ -48,12 +48,7 @@ export const ConcentratedLiquidityCollectWidgetV4: FC<
 
   const positionHasNativeToken = useMemo(() => {
     if (!nativeToken || !token0 || !token1) return false
-    return (
-      token0.isNative ||
-      token1.isNative ||
-      token0.address === nativeToken?.wrapped?.address ||
-      token1.address === nativeToken?.wrapped?.address
-    )
+    return token0.isNative || token1.isNative
   }, [token0, token1, nativeToken])
 
   const expectedAmount0 = useMemo(() => {
@@ -113,8 +108,8 @@ export const ConcentratedLiquidityCollectWidgetV4: FC<
           {({ send, isPending }) => (
             <Checker.Connect fullWidth>
               <Checker.Network fullWidth chainId={chainId}>
-                {(positionDetails?.tokensOwed0 ?? 0n) === 0n &&
-                (positionDetails?.tokensOwed1 ?? 0n) === 0n ? (
+                {(expectedAmount0?.quotient ?? 0n) === 0n &&
+                (expectedAmount1?.quotient ?? 0n) === 0n ? (
                   <Button fullWidth size="xl" disabled>
                     No fees to claim
                   </Button>
@@ -122,7 +117,7 @@ export const ConcentratedLiquidityCollectWidgetV4: FC<
                   <Button
                     fullWidth
                     size="xl"
-                    disabled={isPending}
+                    disabled={isPending || !send}
                     onClick={send}
                   >
                     Collect
