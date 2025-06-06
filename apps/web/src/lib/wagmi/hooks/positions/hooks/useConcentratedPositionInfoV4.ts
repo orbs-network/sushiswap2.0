@@ -49,7 +49,7 @@ export const useConcentratedPositionInfoV4 = ({
       if (pool && positionDetails) {
         position = new SushiSwapV4Position({
           pool,
-          liquidity: positionDetails.liquidity.toString(),
+          liquidity: positionDetails.liquidity,
           tickLower: positionDetails.tickLower,
           tickUpper: positionDetails.tickUpper,
         })

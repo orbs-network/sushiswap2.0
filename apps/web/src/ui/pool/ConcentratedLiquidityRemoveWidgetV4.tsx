@@ -233,27 +233,13 @@ export const ConcentratedLiquidityRemoveWidgetV4: FC<
       const data = encodeCLPositionManagerDecreaseLiquidityCalldata({
         tokenId: positionDetails.tokenId,
         poolKey: positionDetails.poolKey,
-        liquidity: positionDetails.liquidity,
+        liquidity: partialPosition.liquidity,
         amount0Min,
         amount1Min,
         wrapAddress,
         recipient: account,
         hookData: undefined, // TODO
         deadline: deadline,
-      })
-
-      console.debug({
-        tokenId: positionDetails.tokenId.toString(),
-        liquidityPercentage,
-        slippageTolerance,
-        deadline: deadline.toString(),
-        collectOptions: {
-          expectedCurrencyOwed0:
-            feeValue0 ?? Amount.fromRawAmount(position.amount0.currency, 0),
-          expectedCurrencyOwed1:
-            feeValue1 ?? Amount.fromRawAmount(position.amount1.currency, 0),
-          recipient: account,
-        },
       })
 
       return {
@@ -266,8 +252,6 @@ export const ConcentratedLiquidityRemoveWidgetV4: FC<
     account,
     chainId,
     deadline,
-    feeValue0,
-    feeValue1,
     position,
     positionDetails,
     slippageTolerance,
