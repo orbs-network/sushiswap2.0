@@ -30,7 +30,6 @@ import type {
   SushiPositionWithPool,
   SushiSwapProtocol,
 } from 'sushi'
-import type { SushiSwapV3ChainId } from 'sushi/config'
 import { Token } from 'sushi/currency'
 import {
   formatNumber,
@@ -48,7 +47,6 @@ import type { ClaimableFees } from './ClaimableFeesTab'
 import { ClaimableRewardsActionCell } from './ClaimableRewardsActionCell'
 import { ClaimableRewardsAmountCell } from './ClaimableRewardsAmountCell'
 import { ClaimableRewardsChainCell } from './ClaimableRewardsChainCell'
-import { ConcentratedLiquidityPositionAPRCell } from './ConcentratedLiquidityPositionAPRCell'
 import { PoolNameCell, ProtocolBadge } from './PoolNameCell'
 import { PoolNameCellV3 } from './PoolNameCellV3'
 import { PoolNameCellV4 } from './PoolNameCellV4'
@@ -62,6 +60,11 @@ import {
   type TransactionV3,
   type useTransactionsV3,
 } from './PoolTransactionsV3'
+import {
+  TransactionTypeV4,
+  type TransactionV4,
+  type useTransactionsV4,
+} from './PoolTransactionsV4'
 import { PriceRangeCellV3 } from './PriceRangeCellV3'
 import { PriceRangeCellV4 } from './PriceRangeCellV4'
 
@@ -876,6 +879,142 @@ export const TX_AMOUNT_USD_V3_COLUMN: ColumnDef<TransactionV3, unknown> = {
 }
 
 export const TX_TIME_V3_COLUMN: ColumnDef<TransactionV3, unknown> = {
+  id: 'time',
+  header: 'Time',
+  cell: (props) =>
+    formatDistance(props.row.original.timestamp * 1000, new Date(), {
+      addSuffix: true,
+    }),
+  meta: {
+    body: {
+      skeleton: <SkeletonText fontSize="lg" />,
+    },
+  },
+}
+
+export const TX_ORIGIN_V4_COLUMN: ColumnDef<TransactionV4, unknown> = {
+  id: 'sender',
+  header: 'Maker',
+  cell: (props) => shortenAddress(props.row.original.origin),
+  meta: {
+    body: {
+      skeleton: <SkeletonText fontSize="lg" />,
+    },
+  },
+}
+
+export const TX_AMOUNT_IN_V4_COLUMN = (
+  type: Parameters<typeof useTransactionsV4>['1']['type'],
+): ColumnDef<TransactionV4, unknown> => ({
+  id: 'amounts_in',
+  header: type === TransactionTypeV4.Swap ? 'Amount in' : 'Token 0',
+  cell: (props) => {
+    const row = props.row.original
+    switch (row.type) {
+      case TransactionTypeV4.Swap: {
+        const amounts =
+          row.amount0 < 0
+            ? [row.amount0, row.amount1]
+            : [row.amount1, row.amount0]
+        const tokens =
+          row.amount0 < 0
+            ? [row.pool.token0, row.pool.token1]
+            : [row.pool.token1, row.pool.token0]
+
+        return (
+          <span>
+            <FormattedNumber number={Math.abs(amounts[0]).toPrecision(6)} />{' '}
+            {tokens[0].symbol}
+          </span>
+        )
+      }
+      case TransactionTypeV4.Burn: {
+        return (
+          <span>
+            <FormattedNumber number={Math.abs(row.amount0).toPrecision(2)} />{' '}
+            {row.pool.token0.symbol}
+          </span>
+        )
+      }
+      case TransactionTypeV4.Mint:
+      case TransactionTypeV4.Collect:
+        return (
+          <span>
+            <FormattedNumber number={row.amount0.toPrecision(6)} />{' '}
+            {row.pool.token0.symbol}
+          </span>
+        )
+    }
+  },
+  meta: {
+    body: {
+      skeleton: <SkeletonText fontSize="lg" />,
+    },
+  },
+})
+
+export const TX_AMOUNT_OUT_V4_COLUMN = (
+  type: Parameters<typeof useTransactionsV4>['1']['type'],
+): ColumnDef<TransactionV4, unknown> => ({
+  id: 'amount_out',
+  header: type === TransactionTypeV4.Swap ? 'Amount out' : 'Token 1',
+  cell: (props) => {
+    const row = props.row.original
+    switch (row.type) {
+      case TransactionTypeV4.Swap: {
+        const amounts =
+          row.amount0 < 0
+            ? [row.amount0, row.amount1]
+            : [row.amount1, row.amount0]
+        const tokens =
+          row.amount0 < 0
+            ? [row.pool.token0, row.pool.token1]
+            : [row.pool.token1, row.pool.token0]
+
+        return (
+          <span>
+            <FormattedNumber number={Math.abs(amounts[1]).toPrecision(2)} />{' '}
+            {tokens[1].symbol}
+          </span>
+        )
+      }
+      case TransactionTypeV4.Burn: {
+        return (
+          <span>
+            <FormattedNumber number={Math.abs(row.amount1).toPrecision(2)} />{' '}
+            {row.pool.token1.symbol}
+          </span>
+        )
+      }
+      case TransactionTypeV4.Mint:
+      case TransactionTypeV4.Collect:
+        return (
+          <span>
+            <FormattedNumber number={row.amount1.toPrecision(2)} />{' '}
+            {row.pool.token1.symbol}
+          </span>
+        )
+    }
+  },
+  meta: {
+    body: {
+      skeleton: <SkeletonText fontSize="lg" />,
+    },
+  },
+})
+
+export const TX_AMOUNT_USD_V4_COLUMN: ColumnDef<TransactionV4, unknown> = {
+  id: 'amountUSD',
+  header: 'Amount (USD)',
+  cell: (props) => formatUSD(Math.abs(props.row.original.amountUSD)),
+  meta: {
+    body: {
+      skeleton: <SkeletonText fontSize="lg" />,
+    },
+  },
+}
+
+export const TX_TIME_V4_COLUMN: ColumnDef<TransactionV4, unknown> = {
   id: 'time',
   header: 'Time',
   cell: (props) =>

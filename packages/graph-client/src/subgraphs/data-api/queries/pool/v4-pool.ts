@@ -113,7 +113,7 @@ export async function getV4Pool(
       const pool = result.v4Pool
       return {
         id: pool.id as `${string}:0x${string}`,
-        poolId: pool.id as Hex,
+        poolId: pool.poolId as Hex,
         chainId,
         name: `${pool.token0.symbol}-${pool.token1.symbol}`,
         swapFee: pool.swapFee,

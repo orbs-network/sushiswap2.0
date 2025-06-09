@@ -23,6 +23,7 @@ import { Amount, Native, Token, tryParseAmount } from 'sushi/currency'
 import { formatUSD } from 'sushi/format'
 import { zeroAddress } from 'viem'
 import { ConcentratedLiquidityProvider } from './ConcentratedLiquidityProvider'
+import { PoolTransactionsV4 } from './PoolTransactionsV4'
 import { StatisticsChartsV4 } from './StatisticsChartV4'
 
 const PoolPageV4: FC<{ pool: V4Pool }> = ({ pool }) => {
@@ -49,7 +50,7 @@ const Pool: FC<{ pool: V4Pool }> = ({ pool }) => {
   const { chainId } = pool
 
   // TODO
-  const { data: poolStats } = useConcentratedLiquidityPoolStats({
+  const { data: _poolStats } = useConcentratedLiquidityPoolStats({
     chainId,
     address: undefined,
   })
@@ -111,45 +112,34 @@ const Pool: FC<{ pool: V4Pool }> = ({ pool }) => {
               <div className="grid grid-cols-1 gap-3">
                 <div>
                   <CardLabel>Volume (24h)</CardLabel>
-                  {poolStats ? (
-                    <div className="text-xl font-semibold">
-                      {formatUSD(poolStats.volumeUSD1d ?? 0)}{' '}
-                      <span
-                        className={classNames(
-                          'text-xs',
-                          poolStats['volumeUSD1dChange'] > 0
-                            ? 'text-green'
-                            : 'text-red',
-                        )}
-                      >
-                        ({poolStats['volumeUSD1dChange'].toFixed(2)}
-                        %)
-                      </span>
-                    </div>
-                  ) : (
-                    <SkeletonText />
-                  )}
+
+                  <div className="text-xl font-semibold">
+                    {formatUSD(pool.volumeUSD1d ?? 0)}{' '}
+                    <span
+                      className={classNames(
+                        'text-xs',
+                        pool.volumeUSD1dChange > 0 ? 'text-green' : 'text-red',
+                      )}
+                    >
+                      ({pool.volumeUSD1dChange.toFixed(2)}
+                      %)
+                    </span>
+                  </div>
                 </div>
                 <div>
                   <CardLabel>Fees (24h)</CardLabel>
-                  {poolStats ? (
-                    <div className="text-xl font-semibold">
-                      {formatUSD(poolStats.feesUSD1d ?? 0)}{' '}
-                      <span
-                        className={classNames(
-                          'text-xs',
-                          poolStats['feesUSD1dChange'] > 0
-                            ? 'text-green'
-                            : 'text-red',
-                        )}
-                      >
-                        ({poolStats['feesUSD1dChange'].toFixed(2)}
-                        %)
-                      </span>
-                    </div>
-                  ) : (
-                    <SkeletonText />
-                  )}
+                  <div className="text-xl font-semibold">
+                    {formatUSD(pool.feesUSD1d ?? 0)}{' '}
+                    <span
+                      className={classNames(
+                        'text-xs',
+                        pool.feesUSD1dChange > 0 ? 'text-green' : 'text-red',
+                      )}
+                    >
+                      ({pool.feesUSD1dChange.toFixed(2)}
+                      %)
+                    </span>
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -160,7 +150,7 @@ const Pool: FC<{ pool: V4Pool }> = ({ pool }) => {
         <Separator />
       </div>
       {/* <PoolRewardDistributionsCard pool={pool} /> */}
-      {/* <PoolTransactionsV3 pool={pool} poolAddress={address} /> */}
+      <PoolTransactionsV4 pool={pool} />
     </Container>
   )
 }

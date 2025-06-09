@@ -12,6 +12,7 @@ query V4Collects($poolId: Bytes!, $chainId: SushiSwapV4ChainId!) {
     amountUSD
     amount1
     amount0
+    origin
     transaction {
       id
       blockNumber

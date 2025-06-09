@@ -79,7 +79,6 @@ export const useConcentratedLiquidityPositionsV4 = ({
   const {
     data: positions,
     isError: isPositionsError,
-    error: positionsError,
     isLoading: isPositionsInitialLoading,
   } = useQuery({
     queryKey: [
@@ -113,8 +112,6 @@ export const useConcentratedLiquidityPositionsV4 = ({
         tokenIds,
         config,
       })
-
-      console.log('|-positions', positions)
 
       if (!positions.length) return []
 
@@ -160,8 +157,6 @@ export const useConcentratedLiquidityPositionsV4 = ({
         currency1: Type
       })[]
 
-      console.log('positionsWithTokens', positionsWithTokens)
-
       const poolKeys = new Map(
         positionsWithTokens.map(
           ({ chainId, currency0, currency1, poolKey }) => {
@@ -205,7 +200,9 @@ export const useConcentratedLiquidityPositionsV4 = ({
           })
 
           const amountToUsd = (amount: Amount<Token>) => {
-            const _price = prices?.get(chainId)?.get(amount.currency.address)
+            const _price = prices
+              ?.get(chainId)
+              ?.get(amount.currency.address.toLowerCase())
 
             if (!amount?.greaterThan(0n) || !_price) return 0
             const price = Number(
@@ -249,8 +246,6 @@ export const useConcentratedLiquidityPositionsV4 = ({
       account && chainIds && enabled && (prices || isPriceError),
     ),
   })
-
-  console.log('isPositionsError', isPositionsError, positionsError)
 
   return {
     data: positions,
