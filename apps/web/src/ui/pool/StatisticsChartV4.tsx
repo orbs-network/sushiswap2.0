@@ -61,7 +61,7 @@ export const StatisticsChartsV4: FC<Charts> = ({ pool, poolKey }) => {
           chart={chart}
           period={period}
           pool={pool}
-          protocol={SushiSwapProtocol.SUSHISWAP_V3}
+          protocol={'SUSHISWAP_V4'}
         />
       )}
     </Card>

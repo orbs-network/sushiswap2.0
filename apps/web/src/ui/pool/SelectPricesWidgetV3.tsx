@@ -66,7 +66,7 @@ import {
   useConcentratedMintState,
   useRangeHopCallbacks,
 } from './ConcentratedLiquidityProvider'
-import LiquidityChartRangeInput from './LiquidityChartRangeInput'
+import { LiquidityChartRangeInputV3 } from './LiquidityChartRangeInput'
 
 enum PriceRange {
   FULL_RANGE = 0,
@@ -553,7 +553,7 @@ export const SelectPricesWidgetV3: FC<SelectPricesWidgetV3> = ({
                 </div>
               )}
               {!noLiquidity && (
-                <LiquidityChartRangeInput
+                <LiquidityChartRangeInputV3
                   chainId={chainId}
                   currencyA={token0}
                   currencyB={token1}

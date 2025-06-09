@@ -1,7 +1,7 @@
 'use client'
 
 import { ArrowTopRightOnSquareIcon } from '@heroicons/react/20/solid'
-import type { V2Pool, V3Pool } from '@sushiswap/graph-client/data-api'
+import type { V2Pool, V3Pool, V4Pool } from '@sushiswap/graph-client/data-api'
 import {
   Button,
   Currency,
@@ -12,14 +12,15 @@ import {
 } from '@sushiswap/ui'
 import React, { type FC, useMemo } from 'react'
 import { EvmChain, EvmChainKey } from 'sushi/chain'
-import { Token, unwrapToken } from 'sushi/currency'
+import { Native, Token, unwrapToken } from 'sushi/currency'
 import { formatPercent, shortenAddress } from 'sushi/format'
+import { zeroAddress } from 'viem'
 import { APRHoverCard } from './APRHoverCard'
 
 type PoolHeader = {
   backUrl: string
-  address: string
-  pool: V2Pool | V3Pool
+  address?: string
+  pool: V2Pool | V3Pool | V4Pool
   apy?: {
     fees: number | undefined
     rewards: number | undefined
@@ -41,22 +42,22 @@ export const PoolHeader: FC<PoolHeader> = ({
     if (!pool) return [undefined, undefined]
 
     return [
-      unwrapToken(
-        new Token({
-          chainId: pool.chainId,
-          address: pool.token0.address,
-          decimals: pool.token0.decimals,
-          symbol: pool.token0.symbol,
-        }),
-      ),
-      unwrapToken(
-        new Token({
-          chainId: pool.chainId,
-          address: pool.token1.address,
-          decimals: pool.token1.decimals,
-          symbol: pool.token1.symbol,
-        }),
-      ),
+      pool.token0.address === zeroAddress
+        ? Native.onChain(pool.chainId)
+        : new Token({
+            chainId: pool.chainId,
+            address: pool.token0.address,
+            decimals: pool.token0.decimals,
+            symbol: pool.token0.symbol,
+          }),
+      pool.token1.address === zeroAddress
+        ? Native.onChain(pool.chainId)
+        : new Token({
+            chainId: pool.chainId,
+            address: pool.token1.address,
+            decimals: pool.token1.decimals,
+            symbol: pool.token1.symbol,
+          }),
     ]
   }, [pool])
 
@@ -85,11 +86,15 @@ export const PoolHeader: FC<PoolHeader> = ({
                     'sm:!text2-xl sm:!text-4xl !font-bold text-gray-900 dark:text-slate-50 truncate overflow-x-auto',
                 })}
               >
-                <LinkExternal
-                  href={EvmChain.from(pool.chainId)?.getAccountUrl(address)}
-                >
-                  {token0.symbol}/{token1.symbol}
-                </LinkExternal>
+                {address ? (
+                  <LinkExternal
+                    href={EvmChain.from(pool.chainId)?.getAccountUrl(address)}
+                  >
+                    {token0.symbol}/{token1.symbol}
+                  </LinkExternal>
+                ) : (
+                  `${token0.symbol}/${token1.symbol}`
+                )}
               </Button>
               <div
                 className={classNames(
@@ -105,7 +110,9 @@ export const PoolHeader: FC<PoolHeader> = ({
                   ? 'V3'
                   : pool.protocol === 'SUSHISWAP_V2'
                     ? 'V2'
-                    : 'UNKNOWN'}
+                    : pool.protocol === 'SUSHISWAP_V4'
+                      ? 'V4'
+                      : 'UNKNOWN'}
               </div>
             </div>
             {showAddLiquidityButton ? (
@@ -120,7 +127,9 @@ export const PoolHeader: FC<PoolHeader> = ({
                         ? `/${EvmChainKey[pool.chainId]}/pool/v3/${
                             pool.address
                           }/positions`
-                        : ''
+                        : pool.protocol === 'SUSHISWAP_V4'
+                          ? `/${EvmChainKey[pool.chainId]}/pool/v4/${pool.poolId}/positions`
+                          : ''
                   }
                 >
                   Add Liquidity
@@ -161,43 +170,72 @@ export const PoolHeader: FC<PoolHeader> = ({
             <span className="font-semibold tracking-tighter">
               {token0.symbol}
             </span>
-            <LinkExternal
-              target="_blank"
-              href={EvmChain.from(pool.chainId)?.getTokenUrl(
-                token0.wrapped.address,
-              )}
-            >
+            {token0.isNative ? (
               <Button
                 asChild
                 variant="link"
                 size="sm"
-                className="!font-medium !text-secondary-foreground"
+                className="!font-medium !text-secondary-foreground !p-0 !no-underline"
               >
-                {shortenAddress(token0.wrapped.address, 4)}
-                <ArrowTopRightOnSquareIcon className="w-3 h-3" />
+                NATIVE
               </Button>
-            </LinkExternal>
+            ) : (
+              <LinkExternal
+                target="_blank"
+                href={
+                  token0.isNative
+                    ? ''
+                    : EvmChain.from(pool.chainId)?.getTokenUrl(
+                        token0.wrapped.address,
+                      )
+                }
+              >
+                <Button
+                  asChild
+                  variant="link"
+                  size="sm"
+                  className="!font-medium !text-secondary-foreground"
+                >
+                  {shortenAddress(token0.address, 4)}
+                  <ArrowTopRightOnSquareIcon className="w-3 h-3" />
+                </Button>
+              </LinkExternal>
+            )}
           </div>
           <div className="flex items-center gap-1.5">
             <span className="font-semibold tracking-tighter">
               {token1.symbol}
             </span>
-            <LinkExternal
-              target="_blank"
-              href={EvmChain.from(pool.chainId)?.getTokenUrl(
-                token1.wrapped.address,
-              )}
-            >
+            {token1.isNative ? (
               <Button
                 asChild
                 variant="link"
                 size="sm"
-                className="!font-medium !text-secondary-foreground"
+                className="!font-medium !text-secondary-foreground !p-0 !no-underline"
               >
-                {shortenAddress(token1.wrapped.address, 4)}
-                <ArrowTopRightOnSquareIcon className="w-3 h-3" />
+                NATIVE
               </Button>
-            </LinkExternal>
+            ) : (
+              <LinkExternal
+                target="_blank"
+                href={
+                  token1.isNative
+                    ? ''
+                    : EvmChain.from(pool.chainId)?.getTokenUrl(token1.address)
+                }
+              >
+                <Button
+                  asChild
+                  variant="link"
+                  size="sm"
+                  className="!font-medium !text-secondary-foreground"
+                >
+                  {shortenAddress(token1.address, 4)}
+                  <ArrowTopRightOnSquareIcon className="w-3 h-3" />
+                  <ArrowTopRightOnSquareIcon className="w-3 h-3" />
+                </Button>
+              </LinkExternal>
+            )}
           </div>
         </div>
       </div>

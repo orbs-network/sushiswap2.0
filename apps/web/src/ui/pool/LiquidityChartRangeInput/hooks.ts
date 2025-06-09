@@ -83,7 +83,7 @@ export function UseDensityChartDataV4({
 
   return useMemo(() => {
     const data = activeLiquidity.data
-    if (!data) return activeLiquidity
+    if (!data) return { ...activeLiquidity, data }
 
     const newData: ChartEntry[] = []
     for (let i = 0; i < data.length; i++) {

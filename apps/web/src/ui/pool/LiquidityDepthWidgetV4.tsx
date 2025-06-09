@@ -8,7 +8,7 @@ import type { PoolKey } from 'src/lib/pool/v4'
 import { Native, Token } from 'sushi/currency'
 import { zeroAddress } from 'viem'
 import { useConcentratedDerivedMintInfoV4 } from './ConcentratedLiquidityProviderV4'
-import LiquidityChartRangeInput from './LiquidityChartRangeInput'
+import { LiquidityChartRangeInputV4 } from './LiquidityChartRangeInput'
 import { UseDensityChartDataV4 } from './LiquidityChartRangeInput/hooks'
 
 interface LiquidityDepthWidgetV4 {
@@ -65,13 +65,11 @@ export const LiquidityDepthWidgetV4: FC<LiquidityDepthWidgetV4> = ({
     <>
       {isLoading && <SkeletonBox className="w-full h-full" />}
       {!noLiquidity && !isLoading && data && current && (
-        <LiquidityChartRangeInput
+        <LiquidityChartRangeInputV4
           chainId={chainId}
           currencyA={currency0}
           currencyB={currency1}
-          feeAmount={
-            poolKey.fee
-          } /* TODO: should account for protocol fee here? */
+          poolKey={poolKey}
           ticksAtLimit={{ [Bound.LOWER]: false, [Bound.UPPER]: false }}
           price={
             price

@@ -23,7 +23,7 @@ import {
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { type FC, useCallback, useMemo } from 'react'
-import { usePoolGraphData, useV4PoolGraphData } from 'src/lib/hooks'
+import { usePoolGraphData } from 'src/lib/hooks'
 import type { SushiSwapProtocol } from 'sushi'
 import { formatUSD } from 'sushi/format'
 import tailwindConfig from 'tailwind.config.js'
@@ -35,7 +35,7 @@ interface PoolChartProps {
   chart: PoolChartType.Volume | PoolChartType.Fees | PoolChartType.TVL
   period: PoolChartPeriod
   pool: V2Pool | V3Pool | V4Pool
-  protocol: SushiSwapProtocol
+  protocol: SushiSwapProtocol | 'SUSHISWAP_V4'
 }
 
 const tailwind = resolveConfig(tailwindConfig)
@@ -55,24 +55,20 @@ export const PoolChartGraph: FC<PoolChartProps> = ({
   pool,
   protocol,
 }) => {
-  const v2_v3 = usePoolGraphData({
-    poolAddress: (pool as V2Pool | V3Pool).address,
-    chainId: pool.chainId,
-    protocol,
-    enabled: pool.protocol !== 'SUSHISWAP_V4',
-  })
-
-  const v4 = useV4PoolGraphData({
-    poolId: (pool as V4Pool).poolId,
-    chainId: (pool as V4Pool).chainId,
-    enabled: pool.protocol === 'SUSHISWAP_V4',
-  })
-
+  const poolChartGraphParams = useMemo(
+    () => ({
+      chainId: pool.chainId,
+      ...(protocol === 'SUSHISWAP_V4'
+        ? { poolId: (pool as V4Pool).poolId, protocol }
+        : { poolAddress: (pool as V2Pool | V3Pool).address, protocol }),
+    }),
+    [pool, protocol],
+  )
   const {
     data: buckets,
     isLoading,
     isError,
-  } = pool.protocol === 'SUSHISWAP_V4' ? v4 : v2_v3
+  } = usePoolGraphData(poolChartGraphParams)
 
   const [xData, yData]: [number[], number[]] = useMemo(() => {
     const data =

@@ -133,12 +133,12 @@ export const useDerivedPoolKey = () => {
 
   return useMemo(() => {
     if (!token0 || !token1) return undefined
-    const adjustedFeeAmount = getLpFeeFromTotalFee(feeAmount)
+    const lpFeeAmount = getLpFeeFromTotalFee(feeAmount)
     return getPoolKey({
       chainId,
       currency0: token0,
       currency1: token1,
-      feeAmount: Number(adjustedFeeAmount),
+      feeAmount: Number(lpFeeAmount),
       tickSpacing,
     })
   }, [chainId, token0, token1, feeAmount, tickSpacing])

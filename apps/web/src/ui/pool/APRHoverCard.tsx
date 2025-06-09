@@ -17,7 +17,10 @@ import type {
   PoolWithIncentiveApr,
 } from 'sushi'
 
-type RequiredPool = PoolIfIncentivized<PoolWithIncentiveApr<PoolWithFeeAprs>>
+type RequiredPool = Pick<
+  PoolIfIncentivized<PoolWithIncentiveApr<PoolWithFeeAprs>>,
+  'feeApr1d' | 'incentiveApr' | 'isIncentivized'
+>
 
 interface APRHoverCardProps {
   children: ReactNode

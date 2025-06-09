@@ -12,16 +12,14 @@ import {
   CardTitle,
   Container,
   Separator,
-  SkeletonText,
   classNames,
 } from '@sushiswap/ui'
 import { type FC, useMemo } from 'react'
 import { useTokenAmountDollarValues } from 'src/lib/hooks'
-import { useConcentratedLiquidityPoolStats } from 'src/lib/hooks/react-query'
 import { getPoolKey } from 'src/lib/pool/v4'
-import { Amount, Native, Token, tryParseAmount } from 'sushi/currency'
+import { Amount, Native, Token } from 'sushi/currency'
 import { formatUSD } from 'sushi/format'
-import { zeroAddress } from 'viem'
+import { parseUnits, zeroAddress } from 'viem'
 import { ConcentratedLiquidityProvider } from './ConcentratedLiquidityProvider'
 import { PoolTransactionsV4 } from './PoolTransactionsV4'
 import { StatisticsChartsV4 } from './StatisticsChartV4'
@@ -41,19 +39,13 @@ const Pool: FC<{ pool: V4Pool }> = ({ pool }) => {
         chainId: pool.chainId,
         currency0: pool.token0.address,
         currency1: pool.token1.address,
-        feeAmount: pool.swapFee,
+        feeAmount: Number(parseUnits(pool.lpFee.toString(), 6)),
         tickSpacing: pool.tickSpacing,
       }),
     [pool],
   )
 
   const { chainId } = pool
-
-  // TODO
-  const { data: _poolStats } = useConcentratedLiquidityPoolStats({
-    chainId,
-    address: undefined,
-  })
 
   const reserves = useMemo(() => {
     return [

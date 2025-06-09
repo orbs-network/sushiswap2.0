@@ -6,7 +6,7 @@ import { getPoolKey, isSushiSwapV4ChainId } from 'src/lib/pool/v4'
 import { ConcentratedLiquidityProviderV4 } from 'src/ui/pool/ConcentratedLiquidityProviderV4'
 import { NewPositionV4 } from 'src/ui/pool/NewPositionV4'
 import type { EvmChainId } from 'sushi'
-import { isHex } from 'viem'
+import { isHex, parseUnits } from 'viem'
 
 export default async function PositionsCreatePage(props: {
   params: Promise<{ id: string; chainId: string }>
@@ -40,7 +40,7 @@ export default async function PositionsCreatePage(props: {
           chainId,
           currency0: pool.token0.address,
           currency1: pool.token1.address,
-          feeAmount: pool.swapFee,
+          feeAmount: Number(parseUnits(pool.lpFee.toString(), 6)),
           tickSpacing: pool.tickSpacing,
         })}
         currency0={pool.token0}

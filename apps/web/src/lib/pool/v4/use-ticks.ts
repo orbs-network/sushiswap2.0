@@ -3,11 +3,7 @@
 import { useMemo } from 'react'
 import { useConcentratedLiquidityPoolV4 } from 'src/lib/wagmi/hooks/pools/hooks/useConcentratedLiquidityPoolV4'
 import type { Type } from 'sushi/currency'
-import {
-  computeSushiSwapV3PoolAddress,
-  nearestUsableTick,
-} from 'sushi/pool/sushiswap-v3'
-import type { Address } from 'viem'
+import { nearestUsableTick } from 'sushi/pool/sushiswap-v3'
 import { useReadContracts } from 'wagmi'
 import type { Writeable } from 'zod'
 import { SUSHISWAP_V4_CL_TICK_LENS, type SushiSwapV4ChainId } from './config'

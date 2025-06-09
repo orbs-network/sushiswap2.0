@@ -7,7 +7,7 @@ import { useConcentratedLiquidityPoolStats } from 'src/lib/hooks/react-query'
 import type { SushiSwapV3ChainId } from 'sushi/config'
 import type { Address } from 'viem'
 import { useConcentratedDerivedMintInfo } from './ConcentratedLiquidityProvider'
-import LiquidityChartRangeInput from './LiquidityChartRangeInput'
+import { LiquidityChartRangeInputV3 } from './LiquidityChartRangeInput'
 import { UseDensityChartDataV3 } from './LiquidityChartRangeInput/hooks'
 
 interface LiquidityDepthWidgetV3 {
@@ -54,7 +54,7 @@ export const LiquidityDepthWidgetV3: FC<LiquidityDepthWidgetV3> = ({
     <>
       {isLoading && <SkeletonBox className="w-full h-full" />}
       {!noLiquidity && !isLoading && data && current && poolStats && (
-        <LiquidityChartRangeInput
+        <LiquidityChartRangeInputV3
           chainId={chainId}
           currencyA={poolStats.token0}
           currencyB={poolStats.token1}

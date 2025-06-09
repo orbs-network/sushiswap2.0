@@ -59,7 +59,10 @@ import {
   useConcentratedMintState,
   useRangeHopCallbacks,
 } from './ConcentratedLiquidityProviderV4'
-import LiquidityChartRangeInput from './LiquidityChartRangeInput'
+import {
+  LiquidityChartRangeInputV3,
+  LiquidityChartRangeInputV4,
+} from './LiquidityChartRangeInput'
 
 enum PriceRange {
   FULL_RANGE = 0,
@@ -167,7 +170,7 @@ export const SelectPricesWidgetV4: FC<SelectPricesWidgetV4> = ({
       chainId,
       tokenId,
     })
-  const _hasExistingPosition = !!existingPosition && !positionLoading
+  const hasExistingPosition = !!existingPosition && !positionLoading
 
   const { [Bound.LOWER]: tickLower, [Bound.UPPER]: tickUpper } = ticks
   const { [Bound.LOWER]: priceLower, [Bound.UPPER]: priceUpper } = pricesAtTicks
@@ -540,12 +543,12 @@ export const SelectPricesWidgetV4: FC<SelectPricesWidgetV4> = ({
                   </TextFieldDescription>
                 </div>
               )}
-              {/* {!noLiquidity && (
-                <LiquidityChartRangeInput
+              {poolKey && !noLiquidity ? (
+                <LiquidityChartRangeInputV4
                   chainId={chainId}
                   currencyA={currency0}
                   currencyB={currency1}
-                  feeAmount={feeAmount}
+                  poolKey={poolKey}
                   ticksAtLimit={ticksAtLimit}
                   priceRange={priceRange}
                   price={
@@ -568,11 +571,10 @@ export const SelectPricesWidgetV4: FC<SelectPricesWidgetV4> = ({
                     setPriceRangeSelector(undefined)
                     onRightRangeInput(input)
                   }}
-                  interactive
-                  // interactive={!hasExistingPosition}
+                  interactive={!hasExistingPosition}
                   tokenToggle={tokenToggle}
                 />
-              )} */}
+              ) : null}
             </div>
           )}
           <div className="flex flex-col gap-3">

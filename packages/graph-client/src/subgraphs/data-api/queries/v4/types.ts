@@ -99,6 +99,8 @@ export type PoolBase<T extends PoolId = PoolId> = PoolSwapFee<T> & {
 }
 
 type Extension = {
+  lpFee: number
+  protocolFee: number
   tickSpacing: number
   sqrtPrice: bigint
   tick: bigint
