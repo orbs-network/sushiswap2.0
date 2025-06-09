@@ -1,6 +1,6 @@
 'use client'
 
-import type { V4Pool } from '@sushiswap/graph-client/v4'
+import type { V4Pool } from '@sushiswap/graph-client/data-api'
 import {
   Card,
   CardContent,
@@ -19,7 +19,7 @@ import { type FC, useMemo } from 'react'
 import { useTokenAmountDollarValues } from 'src/lib/hooks'
 import { useConcentratedLiquidityPoolStats } from 'src/lib/hooks/react-query'
 import { getPoolKey } from 'src/lib/pool/v4'
-import { Native, Token, tryParseAmount } from 'sushi/currency'
+import { Amount, Native, Token, tryParseAmount } from 'sushi/currency'
 import { formatUSD } from 'sushi/format'
 import { zeroAddress } from 'viem'
 import { ConcentratedLiquidityProvider } from './ConcentratedLiquidityProvider'
@@ -56,17 +56,17 @@ const Pool: FC<{ pool: V4Pool }> = ({ pool }) => {
 
   const reserves = useMemo(() => {
     return [
-      tryParseAmount(
-        pool.reserve0,
+      Amount.fromRawAmount(
         pool.token0.address === zeroAddress
           ? Native.onChain(pool.chainId)
           : new Token(pool.token0),
+        pool.reserve0,
       ),
-      tryParseAmount(
-        pool.reserve1,
+      Amount.fromRawAmount(
         pool.token1.address === zeroAddress
           ? Native.onChain(pool.chainId)
           : new Token(pool.token1),
+        pool.reserve1,
       ),
     ]
   }, [pool.chainId, pool.reserve0, pool.reserve1, pool.token0, pool.token1])

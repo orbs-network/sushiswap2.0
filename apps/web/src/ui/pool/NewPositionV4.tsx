@@ -1,6 +1,6 @@
 'use client'
 
-import type { V4Pool } from '@sushiswap/graph-client/v4'
+import type { V4Pool } from '@sushiswap/graph-client/data-api'
 import {
   Card,
   CardContent,

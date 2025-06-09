@@ -1,7 +1,7 @@
 'use client'
 
 import type { V2Pool, V3Pool } from '@sushiswap/graph-client/data-api'
-import type { V4Pool } from '@sushiswap/graph-client/v4'
+import type { V4Pool } from '@sushiswap/graph-client/data-api'
 import {
   CardContent,
   CardDescription,
@@ -63,7 +63,7 @@ export const PoolChartGraph: FC<PoolChartProps> = ({
   })
 
   const v4 = useV4PoolGraphData({
-    poolId: (pool as V4Pool).id,
+    poolId: (pool as V4Pool).poolId,
     chainId: (pool as V4Pool).chainId,
     enabled: pool.protocol === 'SUSHISWAP_V4',
   })

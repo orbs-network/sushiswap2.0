@@ -1,4 +1,4 @@
-import { getV4Pool } from '@sushiswap/graph-client/v4'
+import { getV4Pool } from '@sushiswap/graph-client/data-api'
 import { unstable_cache } from 'next/cache'
 import { notFound } from 'next/navigation'
 import { isSushiSwapV4ChainId } from 'src/lib/pool/v4'
@@ -18,7 +18,7 @@ export default async function PoolPage(props: {
   }
 
   const pool = await unstable_cache(
-    async () => getV4Pool({ id }),
+    async () => getV4Pool({ id, chainId }),
     ['v4', 'pool', `${chainId}:${id}`],
     {
       revalidate: 60 * 15,

@@ -1,5 +1,7 @@
-import { getV3BasePoolsByToken } from '@sushiswap/graph-client/data-api'
-import { getV4BasePoolsByToken } from '@sushiswap/graph-client/v4'
+import {
+  getV3BasePoolsByToken,
+  getV4BasePoolsByToken,
+} from '@sushiswap/graph-client/data-api'
 import { isSushiSwapV3ChainId } from 'sushi/config'
 import { Native } from 'sushi/currency'
 import { getChainIdAddressFromId } from 'sushi/format'
@@ -54,6 +56,7 @@ export const getV4PoolsByTokenPair = async (
     throw Error('Tokens must be on the same chain')
 
   const pools = await getV4BasePoolsByToken({
+    chainId,
     token0: address0,
     token1: address1,
   })

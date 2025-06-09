@@ -1,6 +1,6 @@
 'use client'
 
-import type { V4Pool } from '@sushiswap/graph-client/v4'
+import type { V4Pool } from '@sushiswap/graph-client/data-api'
 import { Switch } from '@sushiswap/ui'
 import { useState } from 'react'
 import { ConcentratedPositionsTableV4 } from 'src/ui/pool/ConcentratedPositionsTable'
@@ -14,7 +14,7 @@ export function ManageV4PoolPositionsTable({
   return (
     <ConcentratedPositionsTableV4
       chainId={pool.chainId}
-      poolId={pool.id}
+      poolId={pool.poolId}
       hideClosedPositions={hideClosed}
       actions={
         <div className="flex items-center gap-3 whitespace-nowrap">

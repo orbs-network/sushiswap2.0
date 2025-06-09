@@ -1,4 +1,4 @@
-import type { V4Pool } from '@sushiswap/graph-client/v4'
+import type { V4Pool } from '@sushiswap/graph-client/data-api'
 import { Card } from '@sushiswap/ui'
 import React, { type FC, useMemo, useState } from 'react'
 import type { PoolKey } from 'src/lib/pool/v4'

@@ -4,6 +4,7 @@ import type { TokenListChainId } from 'src/subgraphs/data-api/types/TokenListCha
 import type { TrendingTokensChainId } from 'src/subgraphs/data-api/types/TrendingTokensChainId.js'
 import type { ChainId } from 'sushi/chain'
 import type { SushiSwapV2ChainId, SushiSwapV3ChainId } from 'sushi/config'
+import type { SushiSwapV4ChainId } from '../../subgraphs/data-api/v4.js'
 
 type JSONValue = string | number | boolean | null | JSONArray | JSONObject
 
@@ -25,6 +26,7 @@ export type Scalars = {
   SushiSwapChainId: SushiSwapChainId
   SushiSwapV2ChainId: SushiSwapV2ChainId
   SushiSwapV3ChainId: SushiSwapV3ChainId
+  SushiSwapV4ChainId: SushiSwapV4ChainId
 
   PoolChainId: PoolChainId
 

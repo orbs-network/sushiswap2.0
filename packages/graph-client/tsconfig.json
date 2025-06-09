@@ -46,12 +46,6 @@
             "schema": "./src/subgraphs/de.fi/schema.graphql",
             "tadaOutputLocation": "./src/subgraphs/de.fi/de.fi-env.d.ts",
             "tadaTurboLocation": "./src/subgraphs/de.fi/de.fi-cache.d.ts"
-          },
-          {
-            "name": "v4",
-            "schema": "./src/subgraphs/v4/schema.graphql",
-            "tadaOutputLocation": "./src/subgraphs/v4/v4-env.d.ts",
-            "tadaTurboLocation": "./src/subgraphs/v4/v4-cache.d.ts"
           }
         ]
       }

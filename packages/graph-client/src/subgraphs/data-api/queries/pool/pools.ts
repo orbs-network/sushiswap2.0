@@ -12,10 +12,10 @@ export const PoolsQuery = graphql(
     pools(chainId: $chainId, page: $page, search: $search, protocols: $protocols, onlyIncentivized: $onlyIncentivized, orderBy: $orderBy, orderDirection: $orderDirection) {
       count
       data {
+        __typename
         id
         chainId
         name
-        address
         swapFee
         protocol
         token0Address
@@ -54,6 +54,13 @@ export const PoolsQuery = graphql(
           rewarderType
         }
         source
+        ... on Pool {
+          address
+        }
+        ... on _V4Pool {
+          poolId
+          tickSpacing
+        }
       }
     }
   }

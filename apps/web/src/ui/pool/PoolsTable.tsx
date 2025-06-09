@@ -10,6 +10,7 @@ import {
 import { Slot } from '@radix-ui/react-slot'
 import type {
   GetPools,
+  Pool,
   PoolChainId,
   Pools,
 } from '@sushiswap/graph-client/data-api'
@@ -68,7 +69,96 @@ const COLUMNS = [
   {
     id: 'actions',
     cell: ({ row }) =>
-      row.original.protocol === 'SUSHISWAP_V3' ? (
+      row.original.__typename === '_V4Pool' ? (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button icon={EllipsisHorizontalIcon} variant="ghost" size="sm">
+              <span className="sr-only">Open menu</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-fit">
+            <DropdownMenuLabel>
+              {row.original.name}
+              <Chip variant="blue" className="ml-2">
+                SushiSwap V4
+              </Chip>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuGroup>
+              <DropdownMenuItem asChild>
+                <Link
+                  onClick={(e) => e.stopPropagation()}
+                  shallow={true}
+                  className="flex items-center"
+                  href={`/${ChainKey[row.original.chainId]}/pool/v4/${
+                    row.original.poolId
+                  }`}
+                >
+                  <ArrowDownRightIcon width={16} height={16} className="mr-2" />
+                  Pool details
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link
+                  onClick={(e) => e.stopPropagation()}
+                  shallow={true}
+                  className="flex items-center"
+                  href={`/${ChainKey[row.original.chainId]}/pool/v4/${
+                    row.original.poolId
+                  }/create`}
+                >
+                  <PlusIcon width={16} height={16} className="mr-2" />
+                  Create position
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            <DropdownMenuGroup>
+              <TooltipProvider>
+                <Tooltip delayDuration={0}>
+                  <TooltipTrigger
+                    asChild={isMerklChainId(row.original.chainId)}
+                  >
+                    <DropdownMenuItem
+                      asChild
+                      disabled={!isMerklChainId(row.original.chainId)}
+                    >
+                      <Link
+                        onClick={(e) => e.stopPropagation()}
+                        shallow={true}
+                        className="flex items-center"
+                        href={`/${
+                          ChainKey[row.original.chainId]
+                        }/pool/incentivize?fromCurrency=${
+                          row.original.token0Address ===
+                          Native.onChain(row.original.chainId).wrapped.address
+                            ? 'NATIVE'
+                            : row.original.token0Address
+                        }&toCurrency=${
+                          row.original.token1Address ===
+                          Native.onChain(row.original.chainId).wrapped.address
+                            ? 'NATIVE'
+                            : row.original.token1Address
+                        }&feeAmount=${row.original.swapFee * 10_000 * 100}`}
+                      >
+                        <GiftIcon width={16} height={16} className="mr-2" />
+                        Add incentive
+                      </Link>
+                    </DropdownMenuItem>
+                  </TooltipTrigger>
+                  <TooltipContent side="left" className="max-w-[240px]">
+                    <p>
+                      {!isMerklChainId(row.original.chainId)
+                        ? 'Not available on this network'
+                        : 'Add rewards to a pool to incentivize liquidity providers joining in.'}
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </DropdownMenuGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ) : row.original.protocol === 'SUSHISWAP_V3' ? (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button icon={EllipsisHorizontalIcon} variant="ghost" size="sm">
@@ -212,8 +302,8 @@ const COLUMNS = [
         skeleton: <SkeletonText fontSize="lg" />,
       },
     },
-  } satisfies ColumnDef<Pools[number], unknown>,
-] as ColumnDef<Pools[number], unknown>[]
+  } satisfies ColumnDef<Pool, unknown>,
+] as ColumnDef<Pool, unknown>[]
 
 interface PoolsTableProps {
   chainId: PoolChainId
@@ -316,9 +406,11 @@ export const PoolsTable: FC<PoolsTableProps> = ({
           onSortingChange={setSorting}
           loading={isLoading}
           linkFormatter={(row) =>
-            `/${ChainKey[row.chainId]}/pool/${
-              row.protocol === SushiSwapProtocol.SUSHISWAP_V2 ? 'v2' : 'v3'
-            }/${row.address}`
+            row.__typename === '_V4Pool'
+              ? `/${ChainKey[row.chainId]}/pool/v4/${row.poolId}`
+              : `/${ChainKey[row.chainId]}/pool/${
+                  row.protocol === SushiSwapProtocol.SUSHISWAP_V2 ? 'v2' : 'v3'
+                }/${row.address}`
           }
           rowRenderer={rowRenderer}
           columns={COLUMNS}

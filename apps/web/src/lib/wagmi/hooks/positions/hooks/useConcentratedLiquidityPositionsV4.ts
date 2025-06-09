@@ -1,4 +1,4 @@
-import { getV4UserTokenIdsQuery } from '@sushiswap/graph-client/v4'
+import { getV4TokenIdsQuery } from '@sushiswap/graph-client/data-api'
 import { useCustomTokens } from '@sushiswap/hooks'
 import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
@@ -89,10 +89,10 @@ export const useConcentratedLiquidityPositionsV4 = ({
     queryFn: async () => {
       if (!account) return []
       const _tokenIds = await Promise.allSettled(
-        // chainIds.map(
-        //   async (chainId) => await getV4UserTokenIdsQuery({ account, chainId }),
-        // ),
-        [getV4UserTokenIdsQuery({ account })],
+        chainIds.map(
+          async (chainId) =>
+            await getV4TokenIdsQuery({ owner: account, chainId }),
+        ),
       )
       const tokenIds = _tokenIds.reduce(
         (prev, cur, i) => {

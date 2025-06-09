@@ -1,4 +1,4 @@
-import { getV4Pool } from '@sushiswap/graph-client/v4'
+import { getV4Pool } from '@sushiswap/graph-client/data-api'
 import { unstable_cache } from 'next/cache'
 import { notFound } from 'next/navigation'
 import React from 'react'
@@ -20,7 +20,7 @@ export default async function PositionsCreatePage(props: {
   }
 
   const pool = await unstable_cache(
-    async () => getV4Pool({ id }),
+    async () => getV4Pool({ id, chainId }),
     ['v4', 'pool', `${chainId}:${id}`],
     {
       revalidate: 60 * 15,
