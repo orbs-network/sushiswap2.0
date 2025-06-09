@@ -1,8 +1,8 @@
 import type { VariablesOf } from 'gql.tada'
 
 import { type RequestOptions, request } from 'src/lib/request.js'
-import { SUSHI_DATA_API_HOST } from 'sushi/config/subgraph'
 import type { Address, Hex } from 'viem'
+import { SUSHI_DATA_API_HOST } from '../../data-api-host.js'
 import { graphql } from '../../graphql.js'
 import { isSushiSwapV4ChainId } from '../../v4.js'
 import { type PoolBase, type PoolV4, SushiSwapV4Protocol } from './types.js'
