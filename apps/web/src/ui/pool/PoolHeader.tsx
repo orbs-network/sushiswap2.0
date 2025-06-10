@@ -11,10 +11,11 @@ import {
   typographyVariants,
 } from '@sushiswap/ui'
 import React, { type FC, useMemo } from 'react'
+import { DYNAMIC_FEE_FLAG } from 'src/lib/pool/v4'
 import { EvmChain, EvmChainKey } from 'sushi/chain'
 import { Native, Token, unwrapToken } from 'sushi/currency'
 import { formatPercent, shortenAddress } from 'sushi/format'
-import { zeroAddress } from 'viem'
+import { parseUnits, zeroAddress } from 'viem'
 import { APRHoverCard } from './APRHoverCard'
 
 type PoolHeader = {
@@ -60,6 +61,13 @@ export const PoolHeader: FC<PoolHeader> = ({
           }),
     ]
   }, [pool])
+
+  const isDynamicFee = useMemo(
+    () =>
+      pool.protocol === 'SUSHISWAP_V4' &&
+      Number(parseUnits(pool.swapFee.toString(), 6)) === DYNAMIC_FEE_FLAG,
+    [pool],
+  )
 
   if (pool && token0 && token1)
     return (
@@ -160,7 +168,7 @@ export const PoolHeader: FC<PoolHeader> = ({
           ) : null}
           <div className="flex items-center gap-1.5">
             <span className="font-semibold tracking-tighter">Fee</span>
-            {pool.swapFee * 100}%
+            {isDynamicFee ? 'DYNAMIC' : `${pool.swapFee * 100}%`}
           </div>
           <div className="flex items-center gap-1.5">
             <span className="font-semibold tracking-tighter">Network</span>

@@ -11,11 +11,12 @@ import {
   TickMath,
 } from 'sushi/pool'
 import invariant from 'tiny-invariant'
-import { type Hex, zeroAddress } from 'viem'
+import { type Hex, isAddress, zeroAddress } from 'viem'
 import {
   SUSHISWAP_V4_CL_POOL_MANAGER,
   type SushiSwapV4ChainId,
 } from '../../config'
+import { DYNAMIC_FEE_FLAG } from '../constants'
 import { Q192 } from '../constants/internalConstants'
 import type { HookData, PoolKey, PoolType } from '../types'
 import { getPoolId, getPoolKey, sortCurrencies } from '../utils'
@@ -127,7 +128,14 @@ export class SushiSwapV4Pool {
     dynamic?: boolean
     hooks?: HookData
   }) {
-    invariant(Number.isInteger(fee) && fee < 1_000_000, 'FEE')
+    invariant(
+      !hooks || isAddress(hooks.address, { strict: false }),
+      'Invalid hook address',
+    )
+    invariant(
+      Number.isInteger(fee) && (fee === DYNAMIC_FEE_FLAG || fee < 1_000_000),
+      'FEE',
+    )
     ;[this.currency0, this.currency1] = sortCurrencies(currencyA, currencyB)
     this.fee = fee
     this.sqrtRatioX96 = BigInt(sqrtRatioX96)
@@ -146,6 +154,7 @@ export class SushiSwapV4Pool {
       currency1: this.currency1,
       feeAmount: this.fee,
       tickSpacing: this.tickSpacing,
+      hooks: this.hooks,
     })
     this.id = getPoolId(this.poolKey)
   }

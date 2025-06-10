@@ -9,6 +9,7 @@ import {
 } from 'src/lib/pool/v4'
 import { sushiswapV4CLPoolManagerAbi_getLiquidity } from 'src/lib/pool/v4/sdk/abi/sushiswapV4CLPoolManagerAbi_getLiquidity'
 import { sushiswapV4CLPoolManagerAbi_getSlot0 } from 'src/lib/pool/v4/sdk/abi/sushiswapV4CLPoolManagerAbi_getSlot0'
+import { decodePoolParameters } from 'src/lib/pool/v4/sdk/utils/decodePoolParameters'
 import type { Type } from 'sushi/currency'
 import type { ContractFunctionReturnType } from 'viem'
 import type { PublicWagmiConfig } from '../../../config/public'
@@ -89,6 +90,12 @@ export const getConcentratedLiquidityPoolsV4 = async ({
       ...rest,
       fee,
       tickSpacing,
+      hooks: poolKey.hooks
+        ? {
+            address: poolKey.hooks,
+            hooksRegistration: poolKey.parameters.hooksRegistration,
+          }
+        : undefined,
       currencyA: currency0,
       currencyB: currency1,
       sqrtRatioX96: sqrtPriceX96,

@@ -32,11 +32,13 @@ import { useSlippageTolerance } from 'src/lib/hooks/useSlippageTolerance'
 import type { Permit2Signature } from 'src/lib/permit2/types'
 import {
   type CLPositionConfig,
+  DYNAMIC_FEE_FLAG,
   type PoolKey,
   SUSHISWAP_V4_CL_POSITION_MANAGER,
   type SushiSwapV4ChainId,
   type SushiSwapV4Position,
   addCLLiquidityMulticall,
+  getProtocolFeeFromLpFee,
 } from 'src/lib/pool/v4'
 import {
   getDefaultTTL,
@@ -342,6 +344,17 @@ export const AddSectionReviewModalConcentratedV4: FC<
 
   const { status } = useWaitForTransactionReceipt({ chainId, hash: data })
 
+  const swapFee = useMemo(() => {
+    if (poolKey?.fee === DYNAMIC_FEE_FLAG) {
+      return 'DYNAMIC'
+    } else if (poolKey?.fee) {
+      const protocolFee = getProtocolFeeFromLpFee(poolKey.fee)
+      return `${poolKey.fee + Number(protocolFee) / 1000}%`
+    }
+
+    return undefined
+  }, [poolKey?.fee])
+
   return (
     <DialogProvider>
       <DialogReview>
@@ -389,10 +402,8 @@ export const AddSectionReviewModalConcentratedV4: FC<
                     <List.KeyValue flex title="Network">
                       {EvmChain.from(chainId)?.name}
                     </List.KeyValue>
-                    {poolKey && (
-                      <List.KeyValue title="Fee Tier">{`${
-                        +poolKey.fee / 10000
-                      }%`}</List.KeyValue>
+                    {swapFee && (
+                      <List.KeyValue title="Fee Tier">{swapFee}</List.KeyValue>
                     )}
                   </List.Control>
                 </List>

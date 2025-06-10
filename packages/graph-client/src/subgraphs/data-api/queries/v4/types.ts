@@ -2,7 +2,7 @@
 
 import type { EvmChainId } from 'sushi/chain'
 import type { ID, Incentive, SushiSwapProtocol, Token } from 'sushi/types'
-import type { Hex } from 'viem'
+import type { Address, Hex } from 'viem'
 import type { SushiSwapV4ChainId } from '../../v4.js'
 
 export const SushiSwapV4Protocol = 'SUSHISWAP_V4'
@@ -102,6 +102,8 @@ type Extension = {
   lpFee: number
   protocolFee: number
   tickSpacing: number
+  hooks: Address
+  hooksRegistration: Hex
   sqrtPrice: bigint
   tick: bigint
   observationIndex: bigint

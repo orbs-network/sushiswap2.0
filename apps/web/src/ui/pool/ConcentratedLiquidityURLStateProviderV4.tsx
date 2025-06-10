@@ -7,8 +7,11 @@ import React, {
   createContext,
   useContext,
   useMemo,
+  useState,
 } from 'react'
 import {
+  DYNAMIC_FEE_FLAG,
+  type HookData,
   SUSHISWAP_V4_SUPPORTED_CHAIN_IDS,
   type SushiSwapV4ChainId,
   getLpFeeFromTotalFee,
@@ -30,6 +33,10 @@ type State = Omit<
   setFeeAmount: (value: number) => void
   tickSpacing: number
   setTickSpacing: (value: number) => void
+  hookString: string
+  setHookString: (value: string) => void
+  hooks: HookData | undefined
+  setHooks: (value: HookData) => void
 }
 
 export const ConcentratedLiquidityUrlStateContextV4 = createContext<State>(
@@ -72,6 +79,8 @@ const _ConcentratedLiquidityURLStateProviderV4: FC<
   const pathname = usePathname()
   const searchParams = useSearchParams()
 
+  const [hookData, setHookData] = useState<HookData | undefined>(undefined)
+
   const state = useMemo(() => {
     // todo: validate
     const tickSpacing = Number(searchParams.get('tickSpacing') ?? '0')
@@ -99,6 +108,16 @@ const _ConcentratedLiquidityURLStateProviderV4: FC<
       void push(`${pathname}?${_searchParams.toString()}`, { scroll: false })
     }
 
+    const hookString = searchParams.get('hook') ?? ''
+
+    const setHookString = (hook: string) => {
+      const _searchParams = new URLSearchParams(
+        Array.from(searchParams.entries()),
+      )
+      _searchParams.set('hook', hook)
+      void push(`${pathname}?${_searchParams.toString()}`, { scroll: false })
+    }
+
     return {
       ...baseState,
       chainId: baseState.chainId as SushiSwapV4ChainId,
@@ -106,8 +125,12 @@ const _ConcentratedLiquidityURLStateProviderV4: FC<
       setFeeAmount,
       tickSpacing,
       setTickSpacing,
+      hookString,
+      setHookString,
+      hooks: hookData,
+      setHooks: (value: HookData) => setHookData(value),
     }
-  }, [baseState, searchParams, push, pathname])
+  }, [baseState, searchParams, push, pathname, hookData])
 
   return (
     <ConcentratedLiquidityUrlStateContextV4.Provider value={state}>
@@ -128,18 +151,22 @@ export const useConcentratedLiquidityURLStateV4 = () => {
 }
 
 export const useDerivedPoolKey = () => {
-  const { chainId, token0, token1, feeAmount, tickSpacing } =
+  const { chainId, token0, token1, feeAmount, tickSpacing, hooks } =
     useConcentratedLiquidityURLStateV4()
 
   return useMemo(() => {
     if (!token0 || !token1) return undefined
-    const lpFeeAmount = getLpFeeFromTotalFee(feeAmount)
+    const lpFeeAmount =
+      feeAmount === DYNAMIC_FEE_FLAG
+        ? feeAmount
+        : getLpFeeFromTotalFee(feeAmount)
     return getPoolKey({
       chainId,
       currency0: token0,
       currency1: token1,
       feeAmount: Number(lpFeeAmount),
       tickSpacing,
+      hooks,
     })
-  }, [chainId, token0, token1, feeAmount, tickSpacing])
+  }, [chainId, token0, token1, feeAmount, tickSpacing, hooks])
 }

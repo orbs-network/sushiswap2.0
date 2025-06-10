@@ -4,10 +4,12 @@ import { Currency } from '@sushiswap/ui'
 import { NetworkIcon } from '@sushiswap/ui/icons/NetworkIcon'
 import type { Row } from '@tanstack/react-table'
 import { type FC, useMemo } from 'react'
+import { DYNAMIC_FEE_FLAG } from 'src/lib/pool/v4'
 import type { ConcentratedLiquidityPositionWithV4Pool } from 'src/lib/wagmi/hooks/positions/types'
 import type { ChainId } from 'sushi/chain'
 import { type Type, unwrapToken } from 'sushi/currency'
 import { formatPercent } from 'sushi/format'
+import { parseUnits } from 'viem'
 
 export const PoolNameCellV4: FC<
   Row<ConcentratedLiquidityPositionWithV4Pool>
@@ -19,6 +21,11 @@ export const PoolNameCellV4: FC<
     ],
     [original],
   )
+  const isDynamicFee = useMemo(
+    () => original.fee === DYNAMIC_FEE_FLAG,
+    [original.fee],
+  )
+
   return (
     <div className="flex items-center gap-5">
       <div className="hidden sm:flex">
@@ -57,10 +64,10 @@ export const PoolNameCellV4: FC<
         </span>
         <div className="flex gap-1">
           <div className="bg-blue/20 text-blue text-[10px] px-2 rounded-full">
-            V3
+            V4
           </div>
           <div className="bg-gray-200 text-gray-700 dark:bg-slate-800 dark:text-slate-300 text-[10px] px-2 rounded-full">
-            {formatPercent(original.fee / 1000000)}
+            {isDynamicFee ? 'DYNAMIC' : formatPercent(original.fee / 1000000)}
           </div>
         </div>
       </div>

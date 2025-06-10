@@ -17,6 +17,7 @@ import {
 import { type FC, useMemo } from 'react'
 import { useTokenAmountDollarValues } from 'src/lib/hooks'
 import { getPoolKey } from 'src/lib/pool/v4'
+import { decodeHooksRegistration } from 'src/lib/pool/v4/sdk/utils/decodeHooksRegistration'
 import { Amount, Native, Token } from 'sushi/currency'
 import { formatUSD } from 'sushi/format'
 import { parseUnits, zeroAddress } from 'viem'
@@ -41,6 +42,10 @@ const Pool: FC<{ pool: V4Pool }> = ({ pool }) => {
         currency1: pool.token1.address,
         feeAmount: Number(parseUnits(pool.lpFee.toString(), 6)),
         tickSpacing: pool.tickSpacing,
+        hooks: {
+          address: pool.hooks,
+          hooksRegistration: decodeHooksRegistration(pool.hooksRegistration),
+        },
       }),
     [pool],
   )

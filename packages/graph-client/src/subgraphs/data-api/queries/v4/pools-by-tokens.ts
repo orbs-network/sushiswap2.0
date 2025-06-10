@@ -20,6 +20,8 @@ export const V4PoolsByTokensQuery = graphql(
         swapFee
         lpFee
         protocolFee
+        hooks
+        hooksRegistration
         tickSpacing
         token0 {
         id
@@ -95,6 +97,8 @@ export async function getV4BasePoolsByToken(
           lpFee: pool.lpFee,
           protocolFee: pool.protocolFee,
           tickSpacing: pool.tickSpacing,
+          hooks: pool.hooks,
+          hooksRegistration: pool.hooksRegistration,
           protocol: SushiSwapV4Protocol,
           token0: {
             id: pool.token0.id as `${string}:0x${string}`,

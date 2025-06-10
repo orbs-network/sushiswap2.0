@@ -51,7 +51,7 @@ export default async function Layout(props: {
 
   const pool = await unstable_cache(
     async () => getV4Pool({ id, chainId }),
-    ['v4', 'pool', `${chainId}:${id}`],
+    ['0', 'v4', 'pool', `${chainId}:${id}`],
     {
       revalidate: 60 * 15,
     },

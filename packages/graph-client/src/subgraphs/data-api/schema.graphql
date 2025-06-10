@@ -286,6 +286,8 @@ type V4BasePool {
   lpFee: Float!
   protocolFee: Float!
   tickSpacing: Float!
+  hooks: Bytes!
+  hooksRegistration: Bytes!
   token0: Token!
   token1: Token!
   source: String!
@@ -415,6 +417,8 @@ type _V4Pool implements IPool {
   swapFee: Float!
   lpFee: Float!
   protocolFee: Float!
+  hooks: Bytes!
+  hooksRegistration: Bytes!
   tickSpacing: Float!
   protocol: String!
   token0Address: String!

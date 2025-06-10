@@ -1,3 +1,5 @@
+'use client'
+
 import { RadioGroup } from '@headlessui/react'
 import { ChevronRightIcon } from '@heroicons/react-v1/solid'
 import {
@@ -13,12 +15,15 @@ import {
   HoverCardContent,
   HoverCardTrigger,
   LinkInternal,
+  Switch,
+  TextField,
   Toggle,
+  classNames,
 } from '@sushiswap/ui'
 import { Dots } from '@sushiswap/ui'
-import React, { type FC, memo, useMemo } from 'react'
+import React, { type FC, memo, useMemo, useState } from 'react'
 import { useV4PoolsByTokenPair } from 'src/lib/hooks/react-query/pools/useV4PoolsByTokenPair'
-import type { SushiSwapV4ChainId } from 'src/lib/pool/v4'
+import { DYNAMIC_FEE_FLAG, type SushiSwapV4ChainId } from 'src/lib/pool/v4'
 import { SushiSwapV3FeeAmount } from 'sushi/config'
 import type { Type } from 'sushi/currency'
 
@@ -44,6 +49,8 @@ export const FEE_OPTIONS = [
 interface SelectFeeConcentratedWidgetV4 {
   feeAmount: number | undefined
   setFeeAmount: (fee: number) => void
+  tickSpacing: number | undefined
+  setTickSpacing: (tickSpacing: number) => void
   chainId: SushiSwapV4ChainId
   token0: Type | undefined
   token1: Type | undefined
@@ -55,11 +62,19 @@ export const SelectFeeConcentratedWidgetV4: FC<SelectFeeConcentratedWidgetV4> =
   memo(function SelectFeeWidget({
     feeAmount,
     setFeeAmount,
+    tickSpacing,
+    setTickSpacing,
     chainId,
     token0,
     token1,
     disableIfNotExists = false,
   }) {
+    const [customFeeEnabled, setCustomFeeEnabled] = useState<boolean>(
+      Boolean(
+        feeAmount && !Object.values(SushiSwapV3FeeAmount).includes(feeAmount),
+      ),
+    )
+
     const { data: pools, isLoading } = useV4PoolsByTokenPair(
       chainId,
       token0?.id,
@@ -98,7 +113,12 @@ export const SelectFeeConcentratedWidgetV4: FC<SelectFeeConcentratedWidgetV4> =
         title="Fee tier"
         description="Some fee tiers work better than others depending on the volatility of your pair. Lower fee tiers generally work better when pairing stable coins. Higher fee tiers generally work better when pairing exotic coins."
       >
-        <div className={!token0 || !token1 ? 'opacity-40' : ''}>
+        <div
+          className={classNames(
+            !token0 || !token1 ? 'opacity-40' : '',
+            'flex flex-col gap-4',
+          )}
+        >
           <RadioGroup
             value={feeAmount}
             onChange={setFeeAmount}
@@ -171,7 +191,7 @@ export const SelectFeeConcentratedWidgetV4: FC<SelectFeeConcentratedWidgetV4> =
                 </HoverCard>
               ) : (
                 <Toggle
-                  pressed={feeAmount === option.value}
+                  pressed={!customFeeEnabled && feeAmount === option.value}
                   onClick={() => setFeeAmount(option.value)}
                   asChild
                   key={i}
@@ -203,6 +223,56 @@ export const SelectFeeConcentratedWidgetV4: FC<SelectFeeConcentratedWidgetV4> =
               ),
             )}
           </RadioGroup>
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-3">
+              <Switch
+                testdata-id="toggle-zap-enabled"
+                checked={customFeeEnabled}
+                disabled={!token0 || !token1}
+                onCheckedChange={() => {
+                  if (customFeeEnabled) {
+                    setFeeAmount(SushiSwapV3FeeAmount.MEDIUM)
+                  }
+                  setCustomFeeEnabled(!customFeeEnabled)
+                }}
+              />
+              <span className="text-sm">Use a custom fee</span>
+            </div>
+            {customFeeEnabled ? (
+              <div className="grid grid-cols-2 gap-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>LP Fee Amount</CardTitle>
+                    <CardDescription>
+                      <TextField
+                        disabled={!token0 || !token1}
+                        placeholder={'100'}
+                        maxDecimals={0}
+                        type="number"
+                        value={feeAmount}
+                        onValueChange={(value) => setFeeAmount(+value)}
+                      />
+                    </CardDescription>
+                  </CardHeader>
+                </Card>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Tick Spacing</CardTitle>
+                    <CardDescription>
+                      <TextField
+                        disabled={!token0 || !token1}
+                        placeholder={'1'}
+                        maxDecimals={0}
+                        type="number"
+                        value={tickSpacing}
+                        onValueChange={(value) => setTickSpacing(+value)}
+                      />
+                    </CardDescription>
+                  </CardHeader>
+                </Card>
+              </div>
+            ) : null}
+          </div>
         </div>
       </FormSection>
     )
