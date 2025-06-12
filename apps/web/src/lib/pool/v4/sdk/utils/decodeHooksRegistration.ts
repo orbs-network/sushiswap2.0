@@ -9,8 +9,12 @@ export const decodeHooksRegistration = (
   const registration =
     typeof encoded === 'number' ? encoded : Number.parseInt(encoded, 16)
 
+  if (registration === 0) {
+    return {}
+  }
+
   invariant(
-    registration >= 0 && registration <= 0x3fff,
+    registration > 0 && registration <= 0x3fff,
     'Invalid hooks registration',
   )
 
