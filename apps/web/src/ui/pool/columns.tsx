@@ -16,6 +16,7 @@ import type { ColumnDef } from '@tanstack/react-table'
 import formatDistance from 'date-fns/formatDistance'
 import React, { useMemo } from 'react'
 import type { ClaimableRewards } from 'src/lib/hooks/react-query'
+import { DYNAMIC_FEE_FLAG } from 'src/lib/pool/v4'
 import type {
   ConcentratedLiquidityPositionWithV3Pool,
   ConcentratedLiquidityPositionWithV4Pool,
@@ -30,7 +31,7 @@ import type {
   SushiPositionWithPool,
   SushiSwapProtocol,
 } from 'sushi'
-import { Token } from 'sushi/currency'
+import { Native, Token } from 'sushi/currency'
 import {
   formatNumber,
   formatPercent,
@@ -38,6 +39,7 @@ import {
   shortenAddress,
 } from 'sushi/format'
 import { unnestPool } from 'sushi/types'
+import { parseUnits, zeroAddress } from 'viem'
 import { APRHoverCard } from './APRHoverCard'
 import { APRWithRewardsHoverCard } from './APRWithRewardsHoverCard'
 import { ClaimableFeesActionCell } from './ClaimableFeesActionCell'
@@ -204,17 +206,29 @@ export const EXPLORE_NAME_COLUMN_POOL: ColumnDef<Pool, unknown> = {
   cell: (props) => {
     const [token0, token1] = useMemo(
       () => [
-        new Token({
-          chainId: props.row.original.chainId,
-          address: props.row.original.token0Address,
-          decimals: 0,
-        }),
-        new Token({
-          chainId: props.row.original.chainId,
-          address: props.row.original.token1Address,
-          decimals: 0,
-        }),
+        props.row.original.token0Address === zeroAddress
+          ? Native.onChain(props.row.original.chainId)
+          : new Token({
+              chainId: props.row.original.chainId,
+              address: props.row.original.token0Address,
+              decimals: 0,
+            }),
+        props.row.original.token1Address === zeroAddress
+          ? Native.onChain(props.row.original.chainId)
+          : new Token({
+              chainId: props.row.original.chainId,
+              address: props.row.original.token1Address,
+              decimals: 0,
+            }),
       ],
+      [props.row.original],
+    )
+
+    const isDynamicFee = useMemo(
+      () =>
+        props.row.original.protocol === 'SUSHISWAP_V4' &&
+        Number(parseUnits(props.row.original.swapFee.toString(), 6)) ===
+          DYNAMIC_FEE_FLAG,
       [props.row.original],
     )
 
@@ -263,7 +277,9 @@ export const EXPLORE_NAME_COLUMN_POOL: ColumnDef<Pool, unknown> = {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <div className="bg-gray-200 text-gray-700 dark:bg-slate-800 dark:text-slate-300 text-[10px] px-2 rounded-full">
-                    {formatNumber(props.row.original.swapFee * 100)}%
+                    {isDynamicFee
+                      ? 'DYNAMIC'
+                      : `${formatNumber(props.row.original.swapFee * 100)}%`}
                   </div>
                 </TooltipTrigger>
                 <TooltipContent>

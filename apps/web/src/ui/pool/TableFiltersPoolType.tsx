@@ -20,26 +20,45 @@ import { Command, CommandGroup, CommandItem } from '@sushiswap/ui'
 import { CheckIcon } from '@sushiswap/ui/icons/CheckIcon'
 import React, { type FC, useCallback, useState, useTransition } from 'react'
 
-import { SushiSwapProtocol } from 'sushi'
+import { isSushiSwapV4ChainId } from 'src/lib/pool/v4'
+import type { EvmChainId } from 'sushi'
+import { isSushiSwapV2ChainId, isSushiSwapV3ChainId } from 'sushi/config'
 import { PROTOCOL_MAP } from '../../lib/constants'
 import { usePoolFilters, useSetPoolFilters } from './PoolsFiltersProvider'
 
 export const POOL_TYPES = [
-  SushiSwapProtocol.SUSHISWAP_V3,
-  SushiSwapProtocol.SUSHISWAP_V2,
+  'SUSHISWAP_V4' as const,
+  'SUSHISWAP_V3' as const,
+  'SUSHISWAP_V2' as const,
 ]
 
+type SushiSwapProtocol = (typeof POOL_TYPES)[number]
+
 const POOL_DESCRIPTIONS = {
-  [SushiSwapProtocol.SUSHISWAP_V3]:
+  SUSHISWAP_V4:
+    'An advanced pool architecture that introduces hooks—customizable logic triggered at key points during swaps and liquidity updates. This design offers greater flexibility, improved composability, and gas efficiency through a singleton contract model, while maintaining support for concentrated liquidity.',
+  SUSHISWAP_V3:
     'A pool type known as concentrated liquidity, which maximizes capital efficiency by providing the liquidity in a pre-defined range around the current price of the pair. If a user’s position moves out of range, it will not be capturing fees and will need to adjust their range or wait for the price to return to it.',
-  [SushiSwapProtocol.SUSHISWAP_V2]:
+  SUSHISWAP_V2:
     'The traditional pool type with a fixed fee of .30% that utilizes a constant product formula to ensure a 50/50 composition of each asset in the pool.',
+}
+
+const IS_POOL_SUPPORTED_CHAIN_ID = {
+  SUSHISWAP_V4: isSushiSwapV4ChainId,
+  SUSHISWAP_V3: isSushiSwapV3ChainId,
+  SUSHISWAP_V2: isSushiSwapV2ChainId,
 }
 
 const isAllThenNone = (protocols: SushiSwapProtocol[]) =>
   protocols.length === POOL_TYPES.length ? [] : protocols
 
-export const TableFiltersPoolType: FC = () => {
+interface TableFiltersPoolTypeProps {
+  network: EvmChainId
+}
+
+export const TableFiltersPoolType: FC<TableFiltersPoolTypeProps> = ({
+  network,
+}) => {
   const [pending, startTransition] = useTransition()
   const [open, setOpen] = useState(false)
   const { protocols } = usePoolFilters()
@@ -95,13 +114,15 @@ export const TableFiltersPoolType: FC = () => {
                 {values.length > 2 ? (
                   <Chip variant="secondary">{values.length} selected</Chip>
                 ) : (
-                  POOL_TYPES.filter((option) => values.includes(option)).map(
-                    (option) => (
-                      <Chip variant="secondary" key={option}>
-                        {PROTOCOL_MAP[option]}
-                      </Chip>
-                    ),
-                  )
+                  POOL_TYPES.filter(
+                    (option) =>
+                      values.includes(option) &&
+                      IS_POOL_SUPPORTED_CHAIN_ID[option](network),
+                  ).map((option) => (
+                    <Chip variant="secondary" key={option}>
+                      {PROTOCOL_MAP[option]}
+                    </Chip>
+                  ))
                 )}
               </div>
             </>

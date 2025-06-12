@@ -59,7 +59,6 @@ export const PoolsQuery = graphql(
         }
         ... on _V4Pool {
           poolId
-          tickSpacing
         }
       }
     }

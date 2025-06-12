@@ -121,7 +121,7 @@ export const TokenPage: FC<TokenPageProps> = ({ token: _token, tokenInfo }) => {
                 <Container maxWidth="7xl" className="px-4">
                   <div className="flex flex-wrap gap-3 mb-4">
                     <TableFiltersSearchToken />
-                    <TableFiltersPoolType />
+                    <TableFiltersPoolType network={token.chainId} />
                     <TableFiltersNetwork
                       network={token.chainId}
                       supportedNetworks={SUSHISWAP_SUPPORTED_CHAIN_IDS}

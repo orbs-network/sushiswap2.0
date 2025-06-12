@@ -26,7 +26,7 @@ export const poolFiltersSchema = z.object({
     .string()
     .transform((protocols) =>
       protocols !== null && protocols !== ','
-        ? (protocols.split(',') as SushiSwapProtocol[])
+        ? (protocols.split(',') as (SushiSwapProtocol | 'SUSHISWAP_V4')[])
         : [],
     ),
   farmsOnly: z

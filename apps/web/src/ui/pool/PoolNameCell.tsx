@@ -10,16 +10,21 @@ import {
   TooltipTrigger,
 } from '@sushiswap/ui'
 import { NetworkIcon } from '@sushiswap/ui/icons/NetworkIcon'
-import type { FC, JSX } from 'react'
+import { type FC, type JSX, useMemo } from 'react'
 import { useTokensFromPool } from 'src/lib/hooks'
+import { DYNAMIC_FEE_FLAG } from 'src/lib/pool/v4'
 import {
   type PoolBase,
   type PoolIfIncentivized,
   SushiSwapProtocol,
 } from 'sushi'
 import { formatNumber } from 'sushi/format'
+import { parseUnits } from 'viem'
 
-export const ProtocolBadge: Record<SushiSwapProtocol, JSX.Element> = {
+export const ProtocolBadge: Record<
+  SushiSwapProtocol | 'SUSHISWAP_V4',
+  JSX.Element
+> = {
   [SushiSwapProtocol.SUSHISWAP_V2]: (
     <div className="whitespace-nowrap bg-pink/20 text-pink text-[10px] px-2 rounded-full">
       V2
@@ -30,6 +35,11 @@ export const ProtocolBadge: Record<SushiSwapProtocol, JSX.Element> = {
       V3
     </div>
   ),
+  SUSHISWAP_V4: (
+    <div className="whitespace-nowrap bg-green/20 text-green text-[10px] px-2 rounded-full">
+      V4
+    </div>
+  ),
 }
 
 export const PoolNameCell: FC<{
@@ -38,6 +48,13 @@ export const PoolNameCell: FC<{
   const { token0, token1 } = useTokensFromPool(pool)
 
   const isIncentivized = 'isIncentivized' in pool && pool.isIncentivized
+
+  const isDynamicFee = useMemo(
+    () =>
+      (pool.protocol as string) === 'SUSHISWAP_V4' &&
+      Number(parseUnits(pool.swapFee.toString(), 6)) === DYNAMIC_FEE_FLAG,
+    [pool],
+  )
 
   return (
     <div className="flex items-center gap-5">
@@ -85,7 +102,9 @@ export const PoolNameCell: FC<{
             <Tooltip>
               <TooltipTrigger asChild>
                 <div className="bg-gray-200 text-gray-700 dark:bg-slate-800 dark:text-slate-300 text-[10px] px-2 rounded-full">
-                  {formatNumber(pool.swapFee * 100)}%
+                  {isDynamicFee
+                    ? 'DYNAMIC'
+                    : `${formatNumber(pool.swapFee * 100)}%`}
                 </div>
               </TooltipTrigger>
               <TooltipContent>

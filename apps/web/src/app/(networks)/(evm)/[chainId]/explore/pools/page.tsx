@@ -25,7 +25,7 @@ export default async function PoolsPage(props: {
     <Container maxWidth="7xl" className="px-4">
       <div className="flex flex-wrap gap-3 mb-4">
         <TableFiltersSearchToken />
-        <TableFiltersPoolType />
+        <TableFiltersPoolType network={chainId} />
         <TableFiltersNetwork
           network={chainId}
           supportedNetworks={POOL_SUPPORTED_NETWORKS}

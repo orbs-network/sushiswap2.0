@@ -6,10 +6,12 @@ export const SUSHI_DATA_API_HOST =
   process.env['NEXT_PUBLIC_SUSHI_DATA_API_HOST'] ||
   PROD_SUSHI_DATA_API_HOST
 
-export const PROTOCOL_MAP: Record<SushiSwapProtocol, string> = {
-  SUSHISWAP_V3: 'SushiSwap V3',
-  SUSHISWAP_V2: 'SushiSwap V2',
-} as const
+export const PROTOCOL_MAP: Record<SushiSwapProtocol | 'SUSHISWAP_V4', string> =
+  {
+    SUSHISWAP_V4: 'SushiSwap V4',
+    SUSHISWAP_V3: 'SushiSwap V3',
+    SUSHISWAP_V2: 'SushiSwap V2',
+  } as const
 
 export enum Bound {
   LOWER = 'LOWER',
