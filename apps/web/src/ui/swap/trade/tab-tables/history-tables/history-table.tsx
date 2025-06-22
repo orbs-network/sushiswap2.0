@@ -6,29 +6,29 @@ import {
   TabsList,
   TabsTrigger,
   classNames,
-} from '@sushiswap/ui'
-import { useState } from 'react'
-import { DCAOrdersHistoryTable } from './dca-history-table/dca-history-table'
-import { LimitOrdersHistoryTable } from './limit-history-table/limit-history-table'
-import { MarketTable } from './market-history-table/market-history-table'
+} from "@sushiswap/ui";
+import { useState } from "react";
+import { DCAOrdersHistoryTable } from "./dca-history-table/dca-history-table";
+import { LimitOrdersHistoryTable } from "./limit-history-table/limit-history-table";
+import { MarketTable } from "./market-history-table/market-history-table";
 
 export const TABS = [
   {
-    label: 'Market',
-    value: 'market',
+    label: "Market",
+    value: "market",
   },
   {
-    label: 'Limit',
-    value: 'limit',
+    label: "Limit",
+    value: "limit",
   },
   {
-    label: 'DCA',
-    value: 'dca',
+    label: "DCA",
+    value: "dca",
   },
-]
+];
 
 export const HistoryTable = () => {
-  const [currentTab, setCurrentTab] = useState(TABS[0].value)
+  const [currentTab, setCurrentTab] = useState(TABS[0].value);
   return (
     <Card className="overflow-hidden border-none !shadow-none md:p-3 xl:bg-slate-50 dark:md:bg-slate-800 rounded-t-none xl:rounded-lg">
       <Tabs
@@ -46,11 +46,11 @@ export const HistoryTable = () => {
               <Button
                 size="sm"
                 asChild
-                variant={tab.value === currentTab ? 'secondary' : 'ghost'}
+                variant={tab.value === currentTab ? "secondary" : "ghost"}
                 className={classNames(
                   tab.value === currentTab
-                    ? '!bg-slate-200 dark:!bg-slate-750'
-                    : '',
+                    ? "!bg-slate-200 dark:!bg-slate-750"
+                    : ""
                 )}
               >
                 {tab.label}
@@ -80,5 +80,5 @@ export const HistoryTable = () => {
         </TabsContent>
       </Tabs>
     </Card>
-  )
-}
+  );
+};

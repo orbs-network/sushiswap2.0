@@ -3,15 +3,16 @@ import { Switch } from '@sushiswap/ui'
 import { NetworkIcon } from '@sushiswap/ui/icons/NetworkIcon'
 import { useTheme } from 'next-themes'
 import { useState } from 'react'
+import { TWAP_SUPPORTED_CHAIN_IDS } from 'src/config'
+import { useTradeTablesContext } from '../trade-tables-context'
 
 export const TradeTableFilters = () => {
   const [showCurrentPairOnly, setShowCurrentPairOnly] = useState(false)
-  const [chainsToShow, setChainsToShow] = useState<number[]>([])
   const { theme } = useTheme()
+  const { chainIds  , onChainChange } = useTradeTablesContext()
 
   const isDarkMode = theme === 'dark'
 
-  const ALL_CHAINS_IN_TABLE = [1, 43114]
 
   return (
     <div className="flex items-center w-full justify-between xl:justify-end gap-3 px-5 pt-3 pb-1 md:px-3 xl:px-0 md:pt-0 md:pb-0 bg-[#F9FAFB] xl:!bg-background md:bg-white md:dark:bg-slate-800 dark:bg-background  overflow-x-auto hide-scrollbar">
@@ -29,23 +30,15 @@ export const TradeTableFilters = () => {
           Chains:
         </span>
         <div className="flex items-center gap-2">
-          {ALL_CHAINS_IN_TABLE.map((chainId) => {
-            const isSelected = chainsToShow.includes(chainId)
+          {TWAP_SUPPORTED_CHAIN_IDS.map((chainId) => {
+            const isSelected = chainIds.includes(chainId)
 
             return (
               <Button
                 key={chainId}
                 asChild
                 type="button"
-                onClick={() => {
-                  setChainsToShow((prev) => {
-                    const newSelection = prev.includes(chainId)
-                      ? prev.filter((id) => id !== chainId)
-                      : [...prev, chainId]
-
-                    return newSelection
-                  })
-                }}
+                onClick={() => onChainChange(chainId)}
                 className={classNames(
                   'dark:border-[#222137] !p-2 border-[#F5F5F5] lg:!border-[#00000014] dark:lg:!border-[#FFFFFF14] border !rounded-lg overflow-hidden',
                   !isSelected && 'lg:bg-white dark:lg:bg-slate-800',

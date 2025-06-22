@@ -1,10 +1,9 @@
-'use client'
+"use client";
 
-import { Card, DataTable, Loader } from '@sushiswap/ui'
-import React from 'react'
-import InfiniteScroll from 'react-infinite-scroll-component'
-import { Native } from 'sushi/currency'
-import { MobileCard } from '../mobile-card/mobile-card'
+import { Card, DataTable, Loader } from "@sushiswap/ui";
+import React, { useCallback, useMemo, useState } from "react";
+import InfiniteScroll from "react-infinite-scroll-component";
+import { MobileCard } from "../mobile-card/mobile-card";
 import {
   BUY_COLUMN,
   CHAIN_COLUMN,
@@ -14,81 +13,33 @@ import {
   STATUS_COLUMN,
   VALUE_PNL_COLUMN,
   getPriceUsdColumn,
-} from './limit-history-columns'
-
-export type LimitOrderStatus = 'Completed' | 'Cancelled' | 'Pending'
-
-export interface LimitOrderHistory {
-  id: string
-  timestamp: number
-  buyToken: ReturnType<typeof Native.onChain>
-  buyAmount: number
-  sellToken: ReturnType<typeof Native.onChain>
-  sellAmount: number
-  chain: {
-    id: number
-    name: string
-  }
-  valueUsd: number
-  pnlUsd: number
-  priceUsd: number
-  filledAmount: number
-  totalAmount: number
-  filledPercent: number
-  status: LimitOrderStatus
-}
-
-const MOCK_DATA: LimitOrderHistory[] = [
-  {
-    id: '1',
-    timestamp: 1736122860000,
-    buyToken: Native.onChain(1),
-    buyAmount: 21,
-    sellToken: Native.onChain(1),
-    sellAmount: 0.01,
-    chain: {
-      id: 1,
-      name: 'Ethereum',
-    },
-    valueUsd: 100.23,
-    pnlUsd: +19.8,
-    priceUsd: 0.86,
-    filledAmount: 21,
-    totalAmount: 21,
-    filledPercent: 1,
-    status: 'Completed',
-  },
-  {
-    id: '2',
-    timestamp: 1736122860000,
-    buyToken: Native.onChain(1),
-    buyAmount: 21,
-    sellToken: Native.onChain(1),
-    sellAmount: 0.01,
-    chain: {
-      id: 137,
-      name: 'Polygon',
-    },
-    valueUsd: 100.23,
-    pnlUsd: +19.8,
-    priceUsd: 0.86,
-    filledAmount: 10,
-    totalAmount: 21,
-    filledPercent: 45,
-    status: 'Cancelled',
-  },
-]
+} from "./limit-history-columns";
+import { useTradeTablesContext } from "../../trade-tables-context";
+import { OrderStatus } from "@orbs-network/twap-sdk";
+import { ColumnDef } from "@tanstack/react-table";
+import { getTwapLimitOrders } from "src/ui/swap/twap/twap-hooks";
+import { TwapOrder } from "src/lib/hooks/react-query/twap";
+import { PaginationState } from "@tanstack/react-table";
 
 export const LimitOrdersHistoryTable = () => {
-  const data = MOCK_DATA
-  const [showInUsd, setShowInUsd] = React.useState(true)
+  const [showInUsd, setShowInUsd] = React.useState(true);
+  const { orders, ordersLoading } = useTradeTablesContext();
+  const [paginationState, setPaginationState] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 10,
+  });
+  const data = useMemo(() => {
+    return getTwapLimitOrders(orders).filter(
+      (order) => order.status !== OrderStatus.Open
+    );
+  }, [orders]);
 
   const priceColumn = React.useMemo(
     () => getPriceUsdColumn(showInUsd, setShowInUsd),
-    [showInUsd],
-  )
+    [showInUsd]
+  );
 
-  const COLUMNS = React.useMemo(
+  const COLUMNS: ColumnDef<TwapOrder>[] = React.useMemo(
     () => [
       DATE_COLUMN,
       BUY_COLUMN,
@@ -99,10 +50,10 @@ export const LimitOrdersHistoryTable = () => {
       FILLED_COLUMN,
       STATUS_COLUMN,
     ],
-    [priceColumn],
-  )
+    [priceColumn]
+  );
 
-  const MOBILE_COLUMNS = React.useMemo(
+  const MOBILE_COLUMNS: ColumnDef<TwapOrder>[] = React.useMemo(
     () => [
       BUY_COLUMN,
       SELL_COLUMN,
@@ -113,8 +64,8 @@ export const LimitOrdersHistoryTable = () => {
       DATE_COLUMN,
       CHAIN_COLUMN,
     ],
-    [priceColumn],
-  )
+    [priceColumn]
+  );
 
   return (
     <InfiniteScroll
@@ -131,9 +82,13 @@ export const LimitOrdersHistoryTable = () => {
         <DataTable
           columns={COLUMNS}
           data={data}
-          loading={false}
+          loading={ordersLoading}
           className="border-none [&_td]:h-[96px]"
           pagination
+          state={{
+            pagination: paginationState,
+          }}
+          onPaginationChange={setPaginationState}
         />
       </Card>
 
@@ -145,5 +100,5 @@ export const LimitOrdersHistoryTable = () => {
         ))}
       </Card>
     </InfiniteScroll>
-  )
-}
+  );
+};
