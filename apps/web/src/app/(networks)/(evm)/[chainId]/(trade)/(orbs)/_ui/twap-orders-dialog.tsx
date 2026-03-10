@@ -3,13 +3,6 @@
 import { ArrowRightIcon, ChevronDownIcon } from '@heroicons/react/24/outline'
 import { ArrowLeftIcon } from '@heroicons/react/24/solid'
 import {
-  OrderStatus,
-  OrderType,
-  getOrderExcecutionRate,
-  getOrderLimitPriceRate,
-  zeroAddress,
-} from '@orbs-network/twap-sdk'
-import {
   Accordion,
   AccordionContent,
   AccordionItem,
@@ -35,30 +28,55 @@ import {
   classNames,
   useDialog,
 } from '@sushiswap/ui'
-import format from 'date-fns/format'
-import { type FC, type ReactNode, useEffect, useMemo, useState } from 'react'
-import type { TwapSupportedChainId } from 'src/config'
-import { type TwapOrder, useTwapOrders } from 'src/lib/hooks/react-query/twap'
-import { fillDelayText } from 'src/lib/swap/twap'
-import { useTokenWithCache } from 'src/lib/wagmi/hooks/tokens/useTokenWithCache'
-import { Amount, shortenAddress, withoutScientificNotation } from 'sushi'
 import {
-  type EvmCurrency,
-  EvmNative,
-  getEvmChainById,
-  shortenHash,
-} from 'sushi/evm'
-import type { Address, Hex } from 'viem'
+  type FC,
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react'
+import { useTokenWithCache } from 'src/lib/wagmi/hooks/tokens/useTokenWithCache'
+import { EvmChainId, EvmNative, shortenHash } from 'sushi/evm'
+import { zeroAddress, type Address, type Hex } from 'viem'
 import { useConnection } from 'wagmi'
-import { useDerivedStateTwap } from './derivedstate-twap-provider'
 import { TwapCancelOrderButton } from './twap-cancel-order-button'
+import {
+  getExplorerUrl,
+  Order,
+  OrderStatus,
+  OrderType,
+  SelectedOrder,
+  useOrderHistoryPanel,
+} from '@orbs-network/spot-react'
+import { useDerivedStateSimpleSwap } from '../../swap/_ui/derivedstate-simple-swap-provider'
+import { TwapOrderDetails } from './twap-order-details'
+import { getTwapOrderTitle, isLimitPriceOrder } from './helper'
+import { ORBS_EXPLORER_URL } from 'src/lib/swap/twap'
+import { ChevronRightIcon } from '@heroicons/react-v1/solid'
 
-enum OrderFilter {
-  All = 'ALL',
-  Open = 'OPEN',
-  Canceled = 'CANCELED',
-  Completed = 'COMPLETED',
-  Expired = 'EXPIRED',
+const MinDstAmountRow = ({
+  totalTrades,
+  minDestAmountPerTrade,
+  tokenSymbol,
+  valueClassName,
+}: {
+  totalTrades?: number
+  minDestAmountPerTrade?: string
+  tokenSymbol?: string
+  valueClassName?: string
+}) => {
+  if (!minDestAmountPerTrade || minDestAmountPerTrade === '0') return null
+  return (
+    <List.KeyValue
+      className="!p-0"
+      title={totalTrades === 1 ? 'Min. received' : 'Min. received per trade'}
+    >
+      <span className={valueClassName}>
+        <FormattedNumber number={minDestAmountPerTrade} /> {tokenSymbol}
+      </span>
+    </List.KeyValue>
+  )
 }
 
 const TwapOrdersDialog: FC<{
@@ -78,44 +96,30 @@ const _TwapOrdersDialog: FC<{
 
   const {
     state: { chainId },
-  } = useDerivedStateTwap()
+  } = useDerivedStateSimpleSwap()
 
-  const { address } = useConnection()
-
-  const { data: orders, isLoading: isOrdersLoading } = useTwapOrders({
-    chainId,
-    account: address,
-    enabled: open,
-  })
-
-  const [orderFilter, setOrderFilter] = useState<OrderFilter>(OrderFilter.All)
-
-  const filteredOrders = useMemo(() => {
-    if (!orders) return []
-
-    switch (orderFilter) {
-      case OrderFilter.All:
-        return orders.ALL
-      case OrderFilter.Open:
-        return orders.OPEN
-      case OrderFilter.Completed:
-        return orders.COMPLETED
-      case OrderFilter.Canceled:
-        return orders.CANCELED
-      case OrderFilter.Expired:
-        return orders.EXPIRED
-      default:
-        return orders.ALL
-    }
-  }, [orders, orderFilter])
-
-  const [selectedOrderIndex, setSelectedOrderIndex] = useState<
-    number | undefined
-  >(undefined)
+  const {
+    isLoading: isOrdersLoading,
+    onSelectOrderFilter,
+    onDisplayOrder,
+    orderFilters,
+    selectedOrder,
+    selectedOrderFilter,
+    selectedOrders,
+  } = useOrderHistoryPanel()
+  const [showOrderFills, setShowOrderFills] = useState(false)
 
   useEffect(() => {
-    !open && setSelectedOrderIndex(undefined)
+    !open && onDisplayOrder(undefined)
   }, [open])
+
+  const onBack = useCallback(() => {
+    if (showOrderFills) {
+      setShowOrderFills(false)
+    } else {
+      onDisplayOrder(undefined)
+    }
+  }, [onDisplayOrder, showOrderFills])
 
   return (
     <DialogReview>
@@ -123,29 +127,30 @@ const _TwapOrdersDialog: FC<{
         <>
           {children}
           <DialogContent className="max-h-screen overflow-y-auto">
-            {typeof selectedOrderIndex === 'number' ? (
+            {selectedOrder ? (
               <TwapOrderDialogContent
-                order={filteredOrders[selectedOrderIndex]}
-                chainId={chainId}
-                onBack={() => setSelectedOrderIndex(undefined)}
+                onBack={onBack}
+                selectedOrder={selectedOrder}
+                showOrderFills={showOrderFills}
+                onShowOrderFills={() => setShowOrderFills(true)}
               />
             ) : (
               <>
                 <DialogTitle className="!text-[unset] !font-normal !leading-[unset] !tracking-[unset]">
                   <DropdownMenu>
                     <DropdownMenuTrigger className="flex items-center gap-2 px-4 py-2.5 text-sm bg-secondary rounded-xl capitalize">
-                      {orderFilter.toLowerCase()}
+                      {selectedOrderFilter.text}
                       <ChevronDownIcon width={14} height={14} />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start">
                       <DropdownMenuGroup>
-                        {Object.entries(OrderFilter).map(([label, value]) => (
+                        {orderFilters.map((filter) => (
                           <DropdownMenuItem
-                            key={value}
-                            onClick={() => setOrderFilter(value)}
+                            key={filter.value}
+                            onClick={() => onSelectOrderFilter(filter.value)}
                             className="cursor-pointer"
                           >
-                            {label}
+                            {filter.text}
                           </DropdownMenuItem>
                         ))}
                       </DropdownMenuGroup>
@@ -158,14 +163,17 @@ const _TwapOrdersDialog: FC<{
                       <List.Control className="px-4 py-3">
                         <div className="text-sm text-center">Loading...</div>
                       </List.Control>
-                    ) : filteredOrders.length ? (
-                      filteredOrders.map((order, i) => (
+                    ) : selectedOrders.length ? (
+                      selectedOrders.map((order, i) => (
                         <button
                           type="button"
                           key={order.id}
-                          onClick={() => setSelectedOrderIndex(i)}
+                          onClick={() => onDisplayOrder(order.id)}
                         >
-                          <TwapOrderCard order={order} chainId={chainId} />
+                          <TwapOrderCard
+                            order={order}
+                            chainId={chainId as EvmChainId}
+                          />
                         </button>
                       ))
                     ) : (
@@ -186,260 +194,336 @@ const _TwapOrdersDialog: FC<{
   )
 }
 
-function parseOrderAmount(
-  currency: EvmCurrency | undefined,
-  orderAmount: string,
-): Amount<EvmCurrency> | undefined {
-  const amount = withoutScientificNotation(orderAmount)
-  if (!currency || !amount) return undefined
-  return new Amount(currency, amount)
-}
-
 const TwapOrderDialogContent = ({
-  chainId,
-  order,
   onBack,
-}: { chainId: TwapSupportedChainId; order: TwapOrder; onBack: () => void }) => {
-  const { address } = useConnection()
+  selectedOrder,
+  showOrderFills,
+  onShowOrderFills,
+}: {
+  onBack: () => void
+  selectedOrder?: SelectedOrder
+  showOrderFills: boolean
+  onShowOrderFills: () => void
+}) => {
+  const {
+    state: { chainId },
+  } = useDerivedStateSimpleSwap()
 
-  const isLimit = order.type === OrderType.LIMIT
+  const orderTitle = useMemo(() => {
+    const title = getTwapOrderTitle(selectedOrder?.orderType)
+    if (showOrderFills) {
+      return `${title} Order fills`
+    }
+    return `${title} Order`
+  }, [selectedOrder?.orderType, showOrderFills])
 
   const { data: token0 } = useTokenWithCache({
     chainId,
-    address: order.srcTokenAddress as Address,
+    address: selectedOrder?.srcToken?.address as Address,
   })
 
   const { data: _token1 } = useTokenWithCache({
     chainId,
-    address: order.dstTokenAddress as Address,
-    enabled: order.dstTokenAddress !== zeroAddress,
+    address: selectedOrder?.dstToken?.address as Address,
+    enabled: selectedOrder?.dstToken?.address !== zeroAddress,
   })
 
   const token1 = useMemo(
     () =>
-      order.dstTokenAddress === zeroAddress
-        ? EvmNative.fromChainId(chainId)
+      selectedOrder?.dstToken?.address === zeroAddress
+        ? EvmNative.fromChainId(chainId as EvmChainId)
         : _token1,
-    [order, chainId, _token1],
+    [selectedOrder?.dstToken?.address, chainId, _token1],
   )
 
-  const {
-    srcAmount,
-    srcChunkAmount,
-    srcFilledAmount,
-    dstFilledAmount,
-    dstMinAmountOut,
-    executionPrice,
-    limitPrice,
-  } = useMemo(() => {
-    return {
-      srcAmount: parseOrderAmount(token0, order.srcAmount),
-      srcChunkAmount: parseOrderAmount(token0, order.srcAmountPerChunk),
-      srcFilledAmount: parseOrderAmount(token0, order.filledSrcAmount),
-      dstFilledAmount: parseOrderAmount(token1, order.filledDstAmount),
-      dstMinAmountOut: parseOrderAmount(token1, order.dstMinAmount),
-      executionPrice:
-        token0 && token1
-          ? getOrderExcecutionRate(order, token0.decimals, token1.decimals)
-          : undefined,
-      limitPrice:
-        token0 && token1
-          ? getOrderLimitPriceRate(order, token0.decimals, token1.decimals)
-          : undefined,
-    }
-  }, [token0, token1, order])
+  const totalChunks = selectedOrder?.totalTrades.value as number
+  const txHash = selectedOrder?.original.txHash || selectedOrder?.original.hash
+  const isV1 = selectedOrder?.original.version === 1
 
   return (
     <>
       <DialogTitle className="flex gap-4 items-center">
         <IconButton icon={ArrowLeftIcon} name="Close" onClick={onBack} />
-        {isLimit ? 'Limit' : 'DCA'} Order #{order.id}
+        {orderTitle}
       </DialogTitle>
-      <div className="flex flex-col gap-4">
-        <List.Control className="p-4 flex flex-col gap-4">
-          <div className="flex justify-between items-center gap-4">
-            <div className="flex flex-col">
-              <span className="text-muted-foreground text-sm">Sell</span>
-              <span>{token0?.symbol}</span>
-            </div>
-            {token0 ? (
-              <Currency.Icon currency={token0} width={36} height={36} />
-            ) : (
-              <SkeletonCircle radius={36} />
-            )}
-          </div>
-          <div className="flex flex-col">
+      {showOrderFills ? (
+        <OrderFills order={selectedOrder} />
+      ) : (
+        <div className="flex flex-col gap-4">
+          <List.Control className="p-4 flex flex-col gap-4">
             <div className="flex justify-between items-center gap-4">
               <div className="flex flex-col">
-                <span className="text-muted-foreground text-sm">Buy</span>
-                <span>{token1?.symbol}</span>
+                <span className="text-muted-foreground text-sm">Sell</span>
+                <span>{token0?.symbol}</span>
               </div>
-              {token1 ? (
-                <Currency.Icon currency={token1} width={36} height={36} />
+              {token0 ? (
+                <Currency.Icon currency={token0} width={36} height={36} />
               ) : (
                 <SkeletonCircle radius={36} />
               )}
             </div>
-            {!isLimit ? (
-              <span className="text-muted-foreground text-sm">
-                {`Every ${fillDelayText(order.fillDelayMs)} over ${order.chunks} order${order.chunks > 1 ? 's' : ''}`}
-              </span>
-            ) : null}
-          </div>
-        </List.Control>
-        <Accordion
-          type="multiple"
-          defaultValue={['execution-summary']}
-          className="flex flex-col gap-4"
-        >
-          <List.Control className="p-4">
-            <AccordionItem
-              value="execution-summary"
-              className="!border-0"
-              defaultChecked
-            >
-              <AccordionTrigger className="!p-0 hover:no-underline">
-                Execution Summary
-              </AccordionTrigger>
-              <AccordionContent>
-                <List className="!gap-2">
-                  <List.KeyValue className="!p-0" title="Status">
-                    <span className="capitalize text-muted-foreground">
-                      {order.status.toLowerCase()}
-                    </span>
-                  </List.KeyValue>
-                  <List.KeyValue className="!p-0" title="Amount sent">
-                    <span className="text-muted-foreground">
-                      {srcFilledAmount?.toSignificant(6)} {token0?.symbol}
-                    </span>
-                  </List.KeyValue>
-                  <List.KeyValue className="!p-0" title="Amount received">
-                    <span className="text-muted-foreground">
-                      {dstFilledAmount?.toSignificant(6)} {token1?.symbol}
-                    </span>
-                  </List.KeyValue>
-                  <List.KeyValue className="!p-0" title="Final execution price">
-                    {executionPrice ? (
+            <div className="flex flex-col">
+              <div className="flex justify-between items-center gap-4">
+                <div className="flex flex-col">
+                  <span className="text-muted-foreground text-sm">Buy</span>
+                  <span>{token1?.symbol}</span>
+                </div>
+                {token1 ? (
+                  <Currency.Icon currency={token1} width={36} height={36} />
+                ) : (
+                  <SkeletonCircle radius={36} />
+                )}
+              </div>
+              {totalChunks > 1 && (
+                <span className="text-muted-foreground text-sm">
+                  <TwapOrderDetails.DcaChunksRow
+                    orderType={selectedOrder?.orderType}
+                    fillDelay={selectedOrder?.tradeInterval.value as number}
+                    totalTrades={selectedOrder?.totalTrades.value as number}
+                  />
+                </span>
+              )}
+            </div>
+          </List.Control>
+
+          <Accordion
+            type="multiple"
+            defaultValue={['execution-summary']}
+            className="flex flex-col gap-4"
+          >
+            <List.Control className="p-4">
+              <AccordionItem
+                value="execution-summary"
+                className="!border-0"
+                defaultChecked
+              >
+                <AccordionTrigger className="!p-0 hover:no-underline">
+                  Execution Summary
+                </AccordionTrigger>
+                <AccordionContent>
+                  <List className="!gap-2">
+                    <List.KeyValue className="!p-0" title="Status">
+                      <span className="capitalize text-muted-foreground">
+                        {selectedOrder?.original.status.toLowerCase()}
+                      </span>
+                    </List.KeyValue>
+                    <List.KeyValue className="!p-0" title="Amount sent">
                       <span className="text-muted-foreground">
-                        1 {token0?.symbol} ={' '}
-                        <FormattedNumber number={executionPrice} />{' '}
+                        <FormattedNumber
+                          number={selectedOrder?.amountInFilled.value}
+                        />{' '}
+                        {token0?.symbol}
+                      </span>
+                    </List.KeyValue>
+                    <List.KeyValue className="!p-0" title="Amount received">
+                      <span className="text-muted-foreground">
+                        <FormattedNumber
+                          number={selectedOrder?.amountOutFilled.value}
+                        />{' '}
                         {token1?.symbol}
                       </span>
-                    ) : (
-                      '-'
-                    )}
-                  </List.KeyValue>
-                </List>
-              </AccordionContent>
-            </AccordionItem>
-          </List.Control>
-          <List.Control className="p-4">
-            <AccordionItem value="order-info" className="!border-0">
-              <AccordionTrigger className="!p-0 hover:no-underline">
-                Order Info
-              </AccordionTrigger>
-              <AccordionContent>
-                <List className="!gap-2">
-                  {!order.isMarketOrder ? (
-                    <List.KeyValue className="!p-0" title="Limit Price">
-                      <span className="text-muted-foreground">
-                        1 {token0?.symbol} ={' '}
-                        <FormattedNumber number={limitPrice} /> {token1?.symbol}
-                      </span>
                     </List.KeyValue>
-                  ) : null}
-                  <List.KeyValue className="!p-0" title="Created at">
-                    <span className="text-muted-foreground">
-                      {format(order.createdAt, 'MMM d, yyyy h:mm a')}
-                    </span>
-                  </List.KeyValue>
-                  <List.KeyValue className="!p-0" title="Expiry">
-                    <span className="text-muted-foreground">
-                      {format(order.deadline, 'MMM d, yyyy h:mm a')}
-                    </span>
-                  </List.KeyValue>
-                  <List.KeyValue className="!p-0" title="Amount in">
-                    <span className="text-muted-foreground">
-                      {srcAmount?.toSignificant(6)} {token0?.symbol}
-                    </span>
-                  </List.KeyValue>
-                  {!isLimit ? (
-                    <>
-                      <List.KeyValue
-                        className="!p-0"
-                        title="Individual trade size"
-                      >
-                        <span className="text-muted-foreground">
-                          {srcChunkAmount?.toSignificant(6)} {token0?.symbol}
-                        </span>
-                      </List.KeyValue>
-                      <List.KeyValue className="!p-0" title="Trade interval">
-                        <span className="text-muted-foreground">
-                          {fillDelayText(order.fillDelayMs)}
-                        </span>
-                      </List.KeyValue>
-                      <List.KeyValue className="!p-0" title="Number of trades">
-                        <span className="text-muted-foreground">
-                          {order.chunks}
-                        </span>
-                      </List.KeyValue>
-                    </>
-                  ) : null}
-                  {!order.isMarketOrder ? (
                     <List.KeyValue
                       className="!p-0"
-                      title={
-                        order.chunks === 1
-                          ? 'Min. received'
-                          : 'Min. received per trade'
-                      }
+                      title="Final execution price"
                     >
-                      <span className="text-muted-foreground">
-                        {dstMinAmountOut?.toSignificant(6)} {token1?.symbol}
-                      </span>
+                      <TwapOrderDetails.PriceRateRow
+                        price={selectedOrder?.executionPrice.value as string}
+                        usd=""
+                        fromSymbol={token0?.symbol}
+                        toSymbol={token1?.symbol}
+                        className="text-muted-foreground"
+                      />
                     </List.KeyValue>
-                  ) : null}
-                  {address ? (
-                    <List.KeyValue className="!p-0" title="Recipient">
+                  </List>
+                </AccordionContent>
+              </AccordionItem>
+            </List.Control>
+            <List.Control className="p-4">
+              <AccordionItem value="order-info" className="!border-0">
+                <AccordionTrigger className="!p-0 hover:no-underline">
+                  Order Info
+                </AccordionTrigger>
+                <AccordionContent>
+                  <List className="!gap-2">
+                    <TwapOrderDetails.LimitPrice
+                      limitPrice={selectedOrder?.limitPrice.value as string}
+                      fromSymbol={token0?.symbol}
+                      toSymbol={token1?.symbol}
+                      valueClassName="text-muted-foreground"
+                    />
+                    <TwapOrderDetails.StartDate
+                      startDate={selectedOrder?.original.createdAt}
+                      valueClassName="text-muted-foreground"
+                    />
+                    <TwapOrderDetails.EndDate
+                      endDate={selectedOrder?.original.deadline}
+                      valueClassName="text-muted-foreground"
+                    />
+                    <TwapOrderDetails.SellTotal
+                      inputAmount={selectedOrder?.srcAmount.value as string}
+                      inputSymbol={token0?.symbol}
+                      valueClassName="text-muted-foreground"
+                    />
+
+                    {totalChunks > 1 && (
+                      <TwapOrderDetails.SellPerOrder
+                        title="Individual trade size"
+                        amountInPerChunk={
+                          selectedOrder?.sizePerTrade.value as string
+                        }
+                        inputSymbol={token0?.symbol}
+                        valueClassName="text-muted-foreground"
+                      />
+                    )}
+
+                    {totalChunks > 1 && (
+                      <TwapOrderDetails.TradeInterval
+                        fillDelay={selectedOrder?.tradeInterval.value as number}
+                        valueClassName="text-muted-foreground"
+                      />
+                    )}
+                    {totalChunks > 1 && (
+                      <TwapOrderDetails.NumberOfOrders
+                        totalChunks={totalChunks}
+                        valueClassName="text-muted-foreground"
+                      />
+                    )}
+
+                    <MinDstAmountRow
+                      totalTrades={selectedOrder?.totalTrades.value as number}
+                      minDestAmountPerTrade={
+                        selectedOrder?.minDestAmountPerTrade.value as string
+                      }
+                      tokenSymbol={token1?.symbol}
+                      valueClassName="text-muted-foreground"
+                    />
+                    <TwapOrderDetails.Recipient
+                      recipient={selectedOrder?.recipient.value as Address}
+                      chainId={chainId}
+                      valueClassName="text-muted-foreground hover:underline"
+                    />
+                    <List.KeyValue
+                      className="!p-0"
+                      title={isV1 ? 'Transaction Hash' : 'Order ID'}
+                    >
                       <a
-                        href={getEvmChainById(chainId).getAccountUrl(address)}
+                        href={
+                          isV1
+                            ? `${getExplorerUrl(txHash!, chainId)}/tx/${txHash}`
+                            : `${ORBS_EXPLORER_URL}/twap/order/${txHash}`
+                        }
                         className="text-muted-foreground hover:underline"
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        {shortenAddress(address)}
+                        {txHash?.startsWith('0x')
+                          ? shortenHash(txHash as Hex)
+                          : txHash}
                       </a>
                     </List.KeyValue>
-                  ) : null}
-                  <List.KeyValue className="!p-0" title="Transaction Hash">
-                    <a
-                      href={getEvmChainById(chainId).getTransactionUrl(
-                        order.txHash as Hex,
-                      )}
-                      className="text-muted-foreground hover:underline"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {shortenHash(order.txHash)}
-                    </a>
-                  </List.KeyValue>
-                </List>
-              </AccordionContent>
-            </AccordionItem>
-          </List.Control>
-        </Accordion>
-        {order.status === OrderStatus.Open ? (
-          <TwapCancelOrderButton chainId={chainId} order={order} />
-        ) : null}
-      </div>
+                  </List>
+                </AccordionContent>
+              </AccordionItem>
+            </List.Control>
+          </Accordion>
+          <Button
+            onClick={onShowOrderFills}
+            variant="secondary"
+            className="flex items-center justify-between"
+          >
+            <span>View Order Fills ({selectedOrder?.fills?.length})</span>
+            <ChevronRightIcon width={18} height={18} />
+          </Button>
+          {selectedOrder?.original.status === OrderStatus.Open ? (
+            <TwapCancelOrderButton
+              chainId={chainId as EvmChainId}
+              order={selectedOrder?.original}
+            />
+          ) : null}
+        </div>
+      )}
     </>
+  )
+}
+
+const OrderFills = ({ order }: { order?: SelectedOrder }) => {
+  if (!order) return null
+
+  if (!order.fills?.length) {
+    return (
+      <div className="text-md text-muted-foreground text-center mt-5 mb-5">
+        No order fills found
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      {order?.fills?.map((fill, index) => {
+        return (
+          <List.Control className="p-4 flex flex-col gap-2 hover:opacity-80">
+            <div className="flex items-center justify-between">
+              <span className="text-xs">Fill #{index + 1}</span>
+            </div>
+            <List>
+              <List.KeyValue className="!p-0" title="Amount sent">
+                <span className="text-muted-foreground">
+                  <FormattedNumber number={fill.srcAmount} />{' '}
+                  {order.srcToken?.symbol}
+                </span>
+              </List.KeyValue>
+              <List.KeyValue className="!p-0" title="Amount received">
+                <span className="text-muted-foreground">
+                  <FormattedNumber number={fill.dstAmount} />{' '}
+                  {order.dstToken?.symbol}
+                </span>
+              </List.KeyValue>
+              <List.KeyValue className="!p-0" title="Timestamp">
+                <span className="text-muted-foreground">
+                  <TwapOrderDetails.Date date={fill.timestamp} />
+                </span>
+              </List.KeyValue>
+              <List.KeyValue className="!p-0" title="Execution price">
+                <span className="text-muted-foreground">
+                  <TwapOrderDetails.PriceRateRow
+                    price={fill.executionRate}
+                    fromSymbol={order.srcToken?.symbol}
+                    toSymbol={order.dstToken?.symbol}
+                    className="text-muted-foreground"
+                  />
+                </span>
+              </List.KeyValue>
+
+              <List.KeyValue className="!p-0" title="Transaction Hash">
+                <span className="text-muted-foreground">
+                  <a
+                    href={fill.explorerUrl}
+                    className="text-muted-foreground hover:underline"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {fill.txHash?.startsWith('0x')
+                      ? shortenHash(fill.txHash as Hex)
+                      : fill.txHash}
+                  </a>
+                </span>
+              </List.KeyValue>
+            </List>
+          </List.Control>
+        )
+      })}
+    </div>
   )
 }
 
 const TwapOrderCard = ({
   chainId,
   order,
-}: { chainId: TwapSupportedChainId; order: TwapOrder }) => {
+}: {
+  chainId: EvmChainId
+  order: Order
+}) => {
   const { data: token0 } = useTokenWithCache({
     chainId,
     address: order.srcTokenAddress as Address,
@@ -463,10 +547,8 @@ const TwapOrderCard = ({
     <List.Control className="p-4 flex flex-col gap-2 hover:opacity-80">
       <div className="flex items-center justify-between">
         <span className="text-xs">
-          #{order.id} {order.type === OrderType.LIMIT ? 'Limit' : 'DCA'}{' '}
-          <span className="text-muted-foreground">
-            ({format(order.createdAt, 'MMM d, yyyy h:mm a')})
-          </span>
+          {getTwapOrderTitle(order.type)}{' '}
+          <TwapOrderDetails.Date date={order.createdAt} />
         </span>
         <div
           className={classNames(

@@ -1,21 +1,19 @@
 'use client'
-
 import {
-  TwapLimitPriceConfigSection,
   TwapPriceConfigPanel,
+  TwapTriggerPriceConfigSection,
 } from '../../_ui/twap-options-input'
 import { Module } from '@orbs-network/spot-react'
 import { TwapForm } from '../../_ui/twap-form'
-import { LimitExpiryInput } from './limit-options-input'
+import { TakeProfitExpiryInput } from './take-profit-options-input'
 
-const module = Module.LIMIT
-export const LimitWidget = () => {
+export const TakeProfitWidget = () => {
   return (
-    <TwapForm module={module}>
+    <TwapForm module={Module.TAKE_PROFIT}>
       <TwapPriceConfigPanel>
-        <TwapLimitPriceConfigSection isLimitModule={true} />
+        <TwapTriggerPriceConfigSection />
       </TwapPriceConfigPanel>
-      <LimitExpiryInput />
+      <TakeProfitExpiryInput />
     </TwapForm>
   )
 }
