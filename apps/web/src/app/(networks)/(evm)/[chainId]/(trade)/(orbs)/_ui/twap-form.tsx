@@ -30,13 +30,12 @@ import {
   useDerivedStateSimpleSwap,
   useSimpleSwapTradeQuote,
 } from '../../swap/_ui/derivedstate-simple-swap-provider'
-import type { EvmCurrency } from 'sushi/evm'
+import { EvmChainId, type EvmCurrency } from 'sushi/evm'
 import { SvmCurrency } from 'sushi/svm'
 import { usePriceProtection } from '@sushiswap/hooks'
 import { zeroAddress } from 'viem'
 import { usePrice } from '~evm/_common/ui/price-provider/price-provider/use-price'
 import { InformationCircleIcon } from '@heroicons/react-v1/solid'
-import { MIN_TRADE_SIZE_USD } from 'src/lib/swap/twap'
 import { SwapModeButtons } from '../../_ui/swap-mode-buttons'
 import { SpotSettingsOverlay } from './spot-settings-overlay'
 import { TwapMaintenanceMessage } from './twap-maintenance-message'
@@ -145,6 +144,23 @@ const toSpotToken = (
   }
 }
 
+const useMinTradeSize = (chainId?: number) => {
+  return useMemo(() => {
+    switch (chainId) {
+      case EvmChainId.ETHEREUM:
+        return 50
+      case EvmChainId.ARBITRUM:
+        return 5
+      case EvmChainId.BASE:
+        return 5
+      case EvmChainId.KATANA:
+        return 5
+      default:
+        return 5
+    }
+  }, [chainId])
+}
+
 export function TwapForm({
   module,
   children,
@@ -185,22 +201,13 @@ export function TwapForm({
 
   const inputBalance = useAmountBalance(token0)
   const outputBalance = useAmountBalance(token1)
+  const minTradeSize = useMinTradeSize(chainId)
   const srcBalance = inputBalance?.data?.amount?.toString() ?? '0'
   const dstBalance = outputBalance?.data?.amount?.toString() ?? '0'
 
   const refetchBalances = useCallback(() => {
     if (stateChainId) refetchChain(stateChainId)
   }, [refetchChain, stateChainId])
-
-  const callbacks = useMemo(
-    () => ({
-      onOrderCreated: () => {},
-      onSubmitOrderFailed: ({ message }: { message: string }) => {
-        createErrorToast(message, false)
-      },
-    }),
-    [],
-  )
 
   const components = useMemo(
     () => ({
@@ -236,7 +243,7 @@ export function TwapForm({
       partner={Partners.Sushiswap}
       module={module}
       priceProtection={Number(priceProtection) || 3}
-      minChunkSizeUsd={MIN_TRADE_SIZE_USD}
+      minChunkSizeUsd={minTradeSize}
       typedInputAmount={typedInputAmount}
       resetTypedInputAmount={resetTypedInputAmount}
       marketReferencePrice={marketReferencePrice}
@@ -253,7 +260,6 @@ export function TwapForm({
       useToken={useSpotToken}
       refetchBalances={refetchBalances}
       translations={CUSTOM_TRANSLATIONS}
-      callbacks={callbacks}
       overrides={overrides}
     >
       <div className="flex flex-col gap-4 p-4 md:p-6 bg-[rgba(255,255,255,0.8)] dark:bg-[rgba(25,32,49,0.8)] rounded-3xl backdrop-blur-2xl">

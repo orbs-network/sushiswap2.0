@@ -6,7 +6,6 @@ import {
 } from '@orbs-network/spot-react'
 import { EvmChainId } from 'sushi/evm'
 
-
 export const TWAP_MIN_FILL_DELAY = {
   value: 5,
   unit: TimeUnit.Minutes,
@@ -21,5 +20,3 @@ export const TWAP_SUPPORTED_CHAIN_IDS = getPartnerChains(
   Partners.Sushiswap,
 ) as EvmChainId[]
 export const ORBS_EXPLORER_URL = 'https://orbs-explorer.vercel.app'
-
-export const MIN_TRADE_SIZE_USD = 5

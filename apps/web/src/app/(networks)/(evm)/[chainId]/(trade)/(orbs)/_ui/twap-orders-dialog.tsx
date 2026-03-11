@@ -407,20 +407,28 @@ const TwapOrderDialogContent = ({
                       className="!p-0"
                       title={isV1 ? 'Transaction Hash' : 'Order ID'}
                     >
-                      <a
-                        href={
-                          isV1
-                            ? `${getExplorerUrl(txHash!, chainId)}/tx/${txHash}`
-                            : `${ORBS_EXPLORER_URL}/twap/order/${txHash}`
-                        }
-                        className="text-muted-foreground hover:underline"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {txHash?.startsWith('0x')
-                          ? shortenHash(txHash as Hex)
-                          : txHash}
-                      </a>
+                      {isV1 ? (
+                        <a
+                          href={
+                            isV1
+                              ? `${getExplorerUrl(txHash!, chainId)}/tx/${txHash}`
+                              : `${ORBS_EXPLORER_URL}/twap/order/${txHash}`
+                          }
+                          className="text-muted-foreground hover:underline"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {txHash?.startsWith('0x')
+                            ? shortenHash(txHash as Hex)
+                            : txHash}
+                        </a>
+                      ) : (
+                        <span className="text-muted-foreground">
+                          {txHash?.startsWith('0x')
+                            ? shortenHash(txHash as Hex)
+                            : txHash}
+                        </span>
+                      )}
                     </List.KeyValue>
                   </List>
                 </AccordionContent>
@@ -452,9 +460,11 @@ const OrderFills = ({ order }: { order?: SelectedOrder }) => {
 
   if (!order.fills?.length) {
     return (
-      <div className="text-md text-muted-foreground text-center mt-5 mb-5">
-        No order fills found
-      </div>
+      <List.Control className="p-4 flex flex-col gap-2 hover:opacity-80">
+        <div className="text-md text-muted-foreground text-center mt-5 mb-5">
+          No order fills found
+        </div>
+      </List.Control>
     )
   }
 
