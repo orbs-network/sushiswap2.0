@@ -199,6 +199,36 @@ const _TwapOrdersDialog: FC<{
   )
 }
 
+const useOrderTokens = (order?: Order) => {
+  const {
+    state: { chainId },
+  } = useDerivedStateSimpleSwap()
+
+  const srcTokenAddress = order?.srcTokenAddress as Address
+  const dstTokenAddress = order?.dstTokenAddress as Address
+
+  const { data: token0 } = useTokenWithCache({
+    chainId,
+    address: srcTokenAddress,
+  })
+
+  const { data: _token1 } = useTokenWithCache({
+    chainId,
+    address: dstTokenAddress,
+    enabled: dstTokenAddress !== zeroAddress,
+  })
+
+  const token1 = useMemo(
+    () =>
+      dstTokenAddress === zeroAddress
+        ? EvmNative.fromChainId(chainId as EvmChainId)
+        : _token1,
+    [dstTokenAddress, chainId, _token1],
+  )
+
+  return { token0, token1 }
+}
+
 const TwapOrderDialogContent = ({
   onBack,
   selectedOrder,
@@ -222,28 +252,7 @@ const TwapOrderDialogContent = ({
     return `${title} Order`
   }, [selectedOrder?.orderType, showOrderFills])
 
-  const srcTokenAddress = selectedOrder?.original.srcTokenAddress as Address
-  const dstTokenAddress = selectedOrder?.original.dstTokenAddress as Address
-
-  const { data: token0 } = useTokenWithCache({
-    chainId,
-    address: srcTokenAddress,
-  })
-
-  const { data: _token1 } = useTokenWithCache({
-    chainId,
-    address: dstTokenAddress,
-    enabled: dstTokenAddress !== zeroAddress,
-  })
-
-  const token1 = useMemo(
-    () =>
-      dstTokenAddress === zeroAddress
-        ? EvmNative.fromChainId(chainId as EvmChainId)
-        : _token1,
-    [dstTokenAddress, chainId, _token1],
-  )
-
+  const { token0, token1 } = useOrderTokens(selectedOrder?.original)
   const totalChunks = selectedOrder?.totalTrades.value as number
   const txHash = selectedOrder?.original.txHash || selectedOrder?.original.hash
   const isV1 = selectedOrder?.original.version === 1
@@ -255,7 +264,7 @@ const TwapOrderDialogContent = ({
         {orderTitle}
       </DialogTitle>
       {showOrderFills ? (
-        <OrderFills order={selectedOrder} token0={token0} token1={token1} />
+        <OrderFills order={selectedOrder} />
       ) : (
         <div className="flex flex-col gap-4">
           <List.Control className="p-4 flex flex-col gap-4">
@@ -463,16 +472,8 @@ const TwapOrderDialogContent = ({
   )
 }
 
-const OrderFills = ({
-  order,
-  token0,
-  token1,
-}: {
-  order?: SelectedOrder
-  token0?: EvmToken<CurrencyMetadata> | SvmToken<CurrencyMetadata>
-  token1?: EvmToken<CurrencyMetadata> | SvmToken<CurrencyMetadata>
-}) => {
-  if (!order) return null
+const OrderFills = ({ order }: { order?: SelectedOrder }) => {
+  const { token0, token1 } = useOrderTokens(order?.original)
 
   return (
     <div className="flex flex-col gap-2">
@@ -485,7 +486,7 @@ const OrderFills = ({
           {token0?.symbol} / {token1?.symbol}
         </span>
       </div>
-      {!order.fills?.length ? (
+      {!order?.fills?.length ? (
         <List.Control className="p-4 flex flex-col gap-2 hover:opacity-80">
           <div className="text-md text-muted-foreground text-center mt-5 mb-5">
             No order fills found
